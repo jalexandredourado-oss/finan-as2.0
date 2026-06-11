@@ -212,6 +212,17 @@
           <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Saldo Líquido</p>
           <h3 id="history-balance-value" class="text-3xl font-black text-emerald-400">R$ 0,00</h3>
         </div>
+
+        <!-- Seletor Filtro de Categoria -->
+        <div class="space-y-1 bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60">
+          <label class="text-[9px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold flex items-center gap-1.5">
+            <i data-lucide="filter" class="w-3.5 h-3.5 text-blue-500"></i> Filtrar Categoria
+          </label>
+          <select id="history-category-filter" class="w-full bg-slate-900 border border-slate-800 p-3 rounded-xl outline-none font-bold text-xs uppercase text-slate-200 focus:border-blue-500">
+            <!-- Preenchido via JavaScript -->
+          </select>
+        </div>
+
         <div id="history-list" class="space-y-3">
         </div>
       </section>
@@ -486,6 +497,7 @@
       activeTab: 'expense',
       fidSubTab: 'categories',
       selectedHistoryMonth: `${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${new Date().getFullYear()}`,
+      historyCategoryFilter: 'all', // NOVO: Filtro ativo por padrão
       isInstallment: false,
       
       drafts: {
@@ -559,6 +571,7 @@
           { id: crypto.randomUUID(), name: "Moradia", type: "expense" },
           { id: crypto.randomUUID(), name: "Transporte", type: "expense" },
           { id: crypto.randomUUID(), name: "Lazer", type: "expense" },
+          { id: crypto.randomUUID(), name: "Porto Seguro", type: "expense" }, // Categoria adicionada por padrão para teste prático
           { id: crypto.randomUUID(), name: "Salário", type: "income" },
           { id: crypto.randomUUID(), name: "Investimentos", type: "income" }
         ];
@@ -784,6 +797,35 @@
       });
     }
 
+    // Preenche e sincroniza o seletor de categorias na aba de histórico
+    function updateHistoryCategoryFilterSelect() {
+      const select = document.getElementById('history-category-filter');
+      if (!select) return;
+      const currentVal = state.historyCategoryFilter || 'all';
+      select.innerHTML = '<option value="all">📊 Todas as Categorias</option>';
+      
+      // Lista todas as categorias personalizadas organizadas por fluxo
+      state.customCategories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.name;
+        opt.textContent = `${c.type === 'income' ? '➕' : '➖'} ${c.name}`;
+        if (c.name === currentVal) opt.selected = true;
+        select.appendChild(opt);
+      });
+
+      // Se a categoria selecionada previamente não existe mais, reseta para "todas"
+      if (currentVal !== 'all' && !state.customCategories.some(c => c.name === currentVal)) {
+        state.historyCategoryFilter = 'all';
+        select.value = 'all';
+      }
+    }
+
+    // Monitora a mudança do filtro para renderizar a lista instantaneamente
+    document.getElementById('history-category-filter').addEventListener('change', (e) => {
+      state.historyCategoryFilter = e.target.value;
+      renderHistoryList();
+    });
+
     function renderAll() {
       const validMonths = getMonthsWithTransactions();
       if (!validMonths.includes(state.selectedHistoryMonth)) {
@@ -816,6 +858,7 @@
         }
       } else if (state.activeTab === 'history') {
         document.getElementById('tab-history').classList.remove('hidden');
+        updateHistoryCategoryFilterSelect(); // Atualiza o dropdown dinamicamente
         renderMonthScroll('history-months-scroll', state.selectedHistoryMonth, (m) => { state.selectedHistoryMonth = m; renderAll(); });
         renderHistoryList();
       } else if (state.activeTab === 'report') {
@@ -917,13 +960,25 @@
     function renderHistoryList() {
       const container = document.getElementById('history-list');
       container.innerHTML = '';
-      const list = expandedTransactions().filter(t => t.displayMonth === state.selectedHistoryMonth);
+      
+      // Filtrar primeiro por Mês de Referência
+      let list = expandedTransactions().filter(t => t.displayMonth === state.selectedHistoryMonth);
+      
+      // Aplicar Filtro de Categoria Dinâmico se estiver ativo
+      if (state.historyCategoryFilter && state.historyCategoryFilter !== 'all') {
+        list = list.filter(t => t.category === state.historyCategoryFilter);
+      }
+
       const summary = getMonthSummary(state.selectedHistoryMonth);
       const balanceValue = document.getElementById('history-balance-value');
       balanceValue.textContent = formatCurrency(summary.balance);
       const balanceBox = document.getElementById('history-balance-box');
       balanceBox.className = `p-6 rounded-[2rem] border text-center transition-all ${summary.balance >= 0 ? 'bg-emerald-950/20 border-emerald-900/30 text-emerald-400' : 'bg-rose-950/20 border-rose-900/30 text-rose-400'}`;
-      if (list.length === 0) { container.innerHTML = `<p class="text-center py-10 text-[10px] font-black text-slate-700 uppercase italic">Nada lançado aqui</p>`; return; }
+      
+      if (list.length === 0) { 
+        container.innerHTML = `<p class="text-center py-10 text-[10px] font-black text-slate-700 uppercase italic">Nenhum lançamento encontrado</p>`; 
+        return; 
+      }
       
       list.forEach((t) => {
         const item = document.createElement('div');
