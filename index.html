@@ -153,42 +153,42 @@
     <main class="flex-1 overflow-y-auto px-4 pb-10 no-print">
       
       <!-- Formulário de Lançamentos -->
-      <section id="tab-form" class="tab-content space-y-6">
-        <form id="transaction-form" class="space-y-6">
+      <section id="tab-form" class="tab-content space-y-4">
+        <form id="transaction-form" class="space-y-4">
           <!-- CONTENTOR DESTACADO DO VALOR -->
-          <div class="bg-slate-900 py-5 px-6 rounded-[2rem] border border-slate-800 shadow-2xl relative overflow-hidden">
+          <div class="bg-slate-900 py-3.5 px-5 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden">
              <div id="form-decor-glow" class="absolute top-0 right-0 w-32 h-32 blur-[80px] -mr-16 -mt-16 bg-rose-500/20"></div>
-             <p id="form-amount-label" class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 font-bold">Quanto gastou?</p>
-             <input type="text" id="transaction-amount" inputmode="numeric" placeholder="R$ 0,00" class="bg-transparent w-full text-4xl font-black text-white outline-none placeholder:text-slate-800 focus:outline-none focus:ring-0" required />
+             <p id="form-amount-label" class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5 font-bold">Quanto gastou?</p>
+             <input type="text" id="transaction-amount" inputmode="numeric" placeholder="R$ 0,00" class="bg-transparent w-full text-3xl font-black text-white outline-none placeholder:text-slate-800 focus:outline-none focus:ring-0" required />
           </div>
           
-          <div class="space-y-4">
+          <div class="space-y-3">
              <div class="space-y-1">
-               <label class="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Descrição</label>
-               <input type="text" id="transaction-desc" placeholder="Ex: Mercado, Almoço..." class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none focus:border-blue-500 font-bold" required />
+               <label class="text-[9px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Descrição</label>
+               <input type="text" id="transaction-desc" placeholder="Ex: Mercado, Almoço..." class="w-full bg-slate-900 border border-slate-800 p-3 rounded-2xl outline-none focus:border-blue-500 font-bold text-sm" required />
              </div>
              
-             <div class="grid grid-cols-2 gap-4">
+             <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1">
-                  <label class="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Categoria</label>
-                  <select id="transaction-category" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none font-bold text-xs uppercase text-slate-200">
+                  <label class="text-[9px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Categoria</label>
+                  <select id="transaction-category" class="w-full bg-slate-900 border border-slate-800 p-3 rounded-2xl outline-none font-bold text-xs uppercase text-slate-200">
                   </select>
                 </div>
                 <div class="space-y-1">
-                  <label class="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Data do Lançamento</label>
-                  <input type="date" id="transaction-date" class="w-full bg-slate-900 border border-slate-800 p-3.5 rounded-2xl outline-none font-bold text-xs text-slate-200 focus:border-blue-500" required />
+                  <label class="text-[9px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Data do Lançamento</label>
+                  <input type="date" id="transaction-date" class="w-full bg-slate-900 border border-slate-800 p-3 rounded-2xl outline-none font-bold text-xs text-slate-200 focus:border-blue-500" required />
                 </div>
              </div>
 
-             <div class="grid grid-cols-2 gap-4">
+             <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1">
-                  <label class="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Mês Ref. (Faturamento)</label>
-                  <select id="transaction-month" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none font-bold text-xs text-slate-200">
+                  <label class="text-[9px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Mês Ref. (Faturamento)</label>
+                  <select id="transaction-month" class="w-full bg-slate-900 border border-slate-800 p-3 rounded-2xl outline-none font-bold text-xs text-slate-200">
                   </select>
                 </div>
                 <div id="payment-method-container" class="space-y-1">
-                   <label class="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Forma de Pagamento</label>
-                   <select id="transaction-method" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none font-bold text-xs text-slate-200 uppercase">
+                   <label class="text-[9px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Forma de Pagamento</label>
+                   <select id="transaction-method" class="w-full bg-slate-900 border border-slate-800 p-3 rounded-2xl outline-none font-bold text-xs text-slate-200 uppercase">
                       <option value="Pix">Pix</option>
                       <option value="Débito">Débito</option>
                       <option value="Crédito">Crédito</option>
@@ -197,28 +197,28 @@
              </div>
 
              <!-- Opções Exclusivas de Despesa -->
-             <div id="expense-options" class="space-y-4">
+             <div id="expense-options" class="space-y-3">
                 <div class="space-y-1">
-                   <label class="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Cartão / Conta (Opcional)</label>
-                   <select id="transaction-card" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none font-bold text-xs text-slate-200">
+                   <label class="text-[9px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Cartão / Conta (Opcional)</label>
+                   <select id="transaction-card" class="w-full bg-slate-900 border border-slate-800 p-3 rounded-2xl outline-none font-bold text-xs text-slate-200">
                    </select>
                 </div>
                
-               <div class="grid grid-cols-2 gap-4 items-center">
-                 <span class="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Compra em Prestações?</span>
+               <div class="grid grid-cols-2 gap-3 items-center">
+                 <span class="text-[9px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Compra em Prestações?</span>
                  <div class="flex gap-2">
-                   <button type="button" id="btn-installment-no" class="flex-1 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700">Não</button>
-                   <button type="button" id="btn-installment-yes" class="flex-1 py-2 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent">Sim</button>
-                   <input type="number" id="transaction-installments" min="2" max="120" value="2" class="hidden w-16 p-2 bg-slate-800 text-center rounded-xl font-bold border border-slate-700 text-white" />
+                   <button type="button" id="btn-installment-no" class="flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700">Não</button>
+                   <button type="button" id="btn-installment-yes" class="flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent">Sim</button>
+                   <input type="number" id="transaction-installments" min="2" max="120" value="2" class="hidden w-16 p-1.5 bg-slate-800 text-center rounded-xl font-bold border border-slate-700 text-white text-xs" />
                  </div>
                </div>
              </div>
           </div>
-          <button type="submit" id="btn-submit-transaction" class="w-full py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl transition-all active:scale-95 bg-rose-600 shadow-rose-900/20 font-bold">Guardar Lançamento</button>
+          <button type="submit" id="btn-submit-transaction" class="w-full py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl transition-all active:scale-95 bg-rose-600 shadow-rose-900/20 font-bold">Guardar Lançamento</button>
         </form>
       </section>
 
-      <!-- Histórico (Filtro removido para manter visual puro) -->
+      <!-- Histórico -->
       <section id="tab-history" class="tab-content hidden space-y-6">
         <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide" id="history-months-scroll">
         </div>
@@ -1327,7 +1327,7 @@
           installmentsCount: (type === 'expense' && editIsInstallment) ? installments : 1
         });
         document.getElementById('edit-transaction-modal').classList.add('hidden');
-        showToast("Lançamento atualizado!", "success");
+        showToast("Lançamento updated!", "success");
       } catch (err) { showToast("Erro ao atualizar lançamento", "error"); }
     };
 
@@ -1496,16 +1496,16 @@
     document.getElementById('btn-installment-no').onclick = () => { 
       state.isInstallment = false; 
       document.getElementById('transaction-installments').classList.add('hidden'); 
-      document.getElementById('btn-installment-yes').className = "flex-1 py-2 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent"; 
-      document.getElementById('btn-installment-no').className = "flex-1 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700"; 
+      document.getElementById('btn-installment-yes').className = "flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent"; 
+      document.getElementById('btn-installment-no').className = "flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700"; 
       saveActiveDraft();
       document.getElementById('transaction-amount').focus();
     };
     document.getElementById('btn-installment-yes').onclick = () => { 
       state.isInstallment = true; 
       document.getElementById('transaction-installments').classList.remove('hidden'); 
-      document.getElementById('btn-installment-no').className = "flex-1 py-2 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent"; 
-      document.getElementById('btn-installment-yes').className = "flex-1 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700"; 
+      document.getElementById('btn-installment-no').className = "flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent"; 
+      document.getElementById('btn-installment-yes').className = "flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700"; 
       saveActiveDraft();
       document.getElementById('transaction-amount').focus();
     };
