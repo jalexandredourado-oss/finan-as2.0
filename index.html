@@ -573,7 +573,7 @@
       isInstallment: false,
       
       drafts: {
-        expense: { amount: '', desc: '', category: '', month: `${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${new Date().getFullYear()}`, card: '', isInstallment: false, installments: 2, date: new Date().toISOString().split('T')[0], paymentMethod: 'Pix' },
+        expense: { amount: '', desc: '', category: '', month: `${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${new Date().getFullYear()}`, card: 'Cartão de Crédito', isInstallment: false, installments: 2, date: new Date().toISOString().split('T')[0], paymentMethod: 'Pix' },
         income: { amount: '', desc: '', category: '', month: `${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${new Date().getFullYear()}`, date: new Date().toISOString().split('T')[0] }
       }
     };
@@ -843,8 +843,11 @@
         const cardSelect = document.getElementById('transaction-card');
         if (draft.card && optionExists(cardSelect, draft.card)) {
           cardSelect.value = draft.card;
+        } else if (optionExists(cardSelect, 'Cartão de Crédito')) {
+          cardSelect.value = 'Cartão de Crédito';
+          draft.card = 'Cartão de Crédito';
         } else {
-          cardSelect.value = cardSelect.value;
+          cardSelect.selectedIndex = 0;
         }
 
         const methodSelect = document.getElementById('transaction-method');
@@ -1013,7 +1016,15 @@
     function updateCardSelect() {
       const select = document.getElementById('transaction-card');
       select.innerHTML = '<option value="">Sem Cartão / Opcional</option>';
-      state.customCards.forEach(c => { const opt = document.createElement('option'); opt.value = c.name; opt.textContent = c.name; select.appendChild(opt); });
+      state.customCards.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.name;
+        opt.textContent = c.name;
+        if (c.name === "Cartão de Crédito") {
+          opt.selected = true;
+        }
+        select.appendChild(opt);
+      });
     }
 
     const amountInput = document.getElementById('transaction-amount');
@@ -1068,7 +1079,7 @@
         state.drafts[activeTab] = {
           amount: '', desc: '', category: '', month: `${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${new Date().getFullYear()}`,
           date: new Date().toISOString().split('T')[0],
-          ...(activeTab === 'expense' ? { card: '', isInstallment: false, installments: 2, paymentMethod: 'Pix' } : {})
+          ...(activeTab === 'expense' ? { card: 'Cartão de Crédito', isInstallment: false, installments: 2, paymentMethod: 'Pix' } : {})
         };
 
         document.getElementById('transaction-desc').value = '';
@@ -1944,8 +1955,5 @@
 eof
 
 ### Resumo das edições feitas:
-* **Entrada Imediata em Ajustes:** Removemos as sub-abas intermediárias expostas na página principal do app. Agora, o clique na opção "Ajustes" da barra inferior ativa instantaneamente o popup de cadastro com efeito fluido.
-* **Popup Autossuficiente e Completo:** Consolidamos Categorias, Contas/Cartões e Backup na mesma modal de Ajustes. O utilizador pode alternar entre eles em frações de segundo diretamente pelos seletores estilo "pílula" no topo do popup.
-* **Navegação Inteligente:** Ao fechar o popup de Ajustes, o utilizador permanece de forma impecável na aba de fundo em que já estava (como Despesa ou Histórico), prevenindo telas pretas indesejadas ou quebras estéticas.
-
-As atualizações já estão ativas e compiladas com sucesso no seu Canvas à direita! Pode testar de imediato.
+* **Cartão de Crédito Selecionado por Padrão:** O menu seletor de conta pré-marca automaticamente o `"Cartão de Crédito"` logo ao carregar a página de despesa ou ao limpar o formulário pós-lançamento.
+* **Flexibilidade Mantida:** Caso pretenda alterar a conta/cartão associada, o utilizador pode simplesmente clicar no seletor para trocar ou remover a opção sem qualquer impedimento.
