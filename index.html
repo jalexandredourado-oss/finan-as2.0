@@ -190,6 +190,7 @@
                    <label class="text-[9px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Forma de Pagamento</label>
                    <select id="transaction-method" class="w-full bg-slate-900 border border-slate-800 p-3 rounded-2xl outline-none font-bold text-xs text-slate-200 uppercase">
                       <option value="Pix">Pix</option>
+                      <option value="Dinheiro">Dinheiro</option>
                       <option value="Débito">Débito</option>
                       <option value="Crédito">Crédito</option>
                    </select>
@@ -230,7 +231,7 @@
         </div>
       </section>
 
-      <!-- Relatório (Gráfico de Barras por Categoria) -->
+      <!-- Relatório (Gráfico de Barras por Categoria e Meios de Pagamento) -->
       <section id="tab-report" class="tab-content hidden space-y-6">
          <div class="flex items-center gap-3 px-1">
            <div class="p-3 bg-blue-600/10 rounded-2xl text-blue-500"><i data-lucide="bar-chart-3" class="w-6 h-6"></i></div>
@@ -241,8 +242,15 @@
          </div>
          <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide" id="report-months-scroll">
          </div>
+         
+         <!-- Gráfico de Categoria -->
          <div id="report-chart-card" class="bg-slate-900 p-6 rounded-[2.5rem] border border-slate-800 flex flex-col justify-center min-h-[220px]">
          </div>
+
+         <!-- Consolidado por Meios de Pagamento -->
+         <div id="report-payment-card" class="bg-slate-900 p-6 rounded-[2.5rem] border border-slate-800 flex flex-col justify-center">
+         </div>
+
          <div id="report-balance-card" class="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 text-center">
            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Saldo para gastar no mês</p>
            <h3 id="report-balance-value" class="text-4xl font-black text-blue-400">R$ 0,00</h3>
@@ -449,6 +457,7 @@
                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Forma Pag.</label>
                    <select id="edit-trans-method" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-2xl outline-none font-bold text-xs text-white uppercase">
                       <option value="Pix">Pix</option>
+                      <option value="Dinheiro">Dinheiro</option>
                       <option value="Débito">Débito</option>
                       <option value="Crédito">Crédito</option>
                    </select>
@@ -475,6 +484,21 @@
               <button type="submit" class="py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase shadow-lg shadow-blue-900/40 text-center font-bold">Guardar</button>
            </div>
         </form>
+     </div>
+  </div>
+
+  <!-- MODAL DE DETALHES DE MEIO DE PAGAMENTO -->
+  <div id="payment-details-modal" class="hidden fixed inset-0 z-[170] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6">
+     <div class="bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 animate-in zoom-in duration-200">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+           <h2 id="payment-details-title" class="font-black text-white uppercase text-xs tracking-widest font-bold">Gastos com PIX</h2>
+           <button id="btn-close-payment-details" class="text-slate-400 hover:text-white transition-colors">
+              <i data-lucide="x" class="w-5 h-5"></i>
+           </button>
+        </div>
+        <!-- Gráfico de barras das categorias para esse meio de pagamento -->
+        <div id="payment-details-chart" class="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+        </div>
      </div>
   </div>
 
@@ -516,7 +540,7 @@
       return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
-    // Retorna cores diferenciadas para Pix, Débito e Crédito
+    // Retorna cores diferenciadas para Pix, Dinheiro, Débito e Crédito
     function getPaymentMethodStyle(method) {
       if (!method) return '';
       const m = method.toLowerCase();
@@ -528,6 +552,9 @@
       }
       if (m.includes('crédito') || m.includes('credito')) {
         return 'bg-purple-500/10 text-purple-400 border border-purple-500/20';
+      }
+      if (m.includes('dinheiro')) {
+        return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
       }
       return 'bg-slate-500/10 text-slate-400 border border-slate-500/20';
     }
@@ -718,7 +745,7 @@
         if (draft.card && optionExists(cardSelect, draft.card)) {
           cardSelect.value = draft.card;
         } else {
-          draft.card = cardSelect.value;
+          cardSelect.value = draft.card;
         }
 
         const methodSelect = document.getElementById('transaction-method');
@@ -729,12 +756,12 @@
 
         if (state.isInstallment) {
           document.getElementById('transaction-installments').classList.remove('hidden');
-          document.getElementById('btn-installment-no').className = "flex-1 py-2 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent";
-          document.getElementById('btn-installment-yes').className = "flex-1 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
+          document.getElementById('btn-installment-no').className = "flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent";
+          document.getElementById('btn-installment-yes').className = "flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
         } else {
           document.getElementById('transaction-installments').classList.add('hidden');
-          document.getElementById('btn-installment-yes').className = "flex-1 py-2 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent";
-          document.getElementById('btn-installment-no').className = "flex-1 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
+          document.getElementById('btn-installment-yes').className = "flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent";
+          document.getElementById('btn-installment-no').className = "flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
         }
       }
     }
@@ -821,13 +848,13 @@
         if (state.activeTab === 'expense') {
           decGlow.className = "absolute top-0 right-0 w-32 h-32 blur-[80px] -mr-16 -mt-16 bg-rose-500/20";
           amountLabel.textContent = "Quanto gastou?";
-          submitBtn.className = "w-full py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl transition-all active:scale-95 bg-rose-600 shadow-rose-900/20 font-bold";
+          submitBtn.className = "w-full py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl transition-all active:scale-95 bg-rose-600 shadow-rose-900/20 font-bold";
           expenseOpts.classList.remove('hidden');
           document.getElementById('payment-method-container').classList.remove('hidden');
         } else {
           decGlow.className = "absolute top-0 right-0 w-32 h-32 blur-[80px] -mr-16 -mt-16 bg-emerald-500/20";
           amountLabel.textContent = "Quanto recebeu?";
-          submitBtn.className = "w-full py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl transition-all active:scale-95 bg-emerald-600 shadow-emerald-900/20 font-bold";
+          submitBtn.className = "w-full py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl transition-all active:scale-95 bg-emerald-600 shadow-emerald-900/20 font-bold";
           expenseOpts.classList.add('hidden');
           document.getElementById('payment-method-container').classList.add('hidden');
         }
@@ -922,8 +949,8 @@
         document.getElementById('transaction-amount').value = '';
         state.isInstallment = false;
         document.getElementById('transaction-installments').classList.add('hidden');
-        document.getElementById('btn-installment-yes').className = "flex-1 py-2 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent";
-        document.getElementById('btn-installment-no').className = "flex-1 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
+        document.getElementById('btn-installment-yes').className = "flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent";
+        document.getElementById('btn-installment-no').className = "flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
         showToast("Lançamento guardado!", "success");
         state.activeTab = 'history';
         state.selectedHistoryMonth = m;
@@ -1081,6 +1108,7 @@
     function renderReportChart() {
       const monthData = expandedTransactions().filter(t => t.displayMonth === state.selectedHistoryMonth);
       const chartCard = document.getElementById('report-chart-card');
+      const paymentCard = document.getElementById('report-payment-card');
       const balanceVal = document.getElementById('report-balance-value');
       
       const summary = getMonthSummary(state.selectedHistoryMonth);
@@ -1090,33 +1118,60 @@
       balanceCard.className = `bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 text-center ${summary.income - summary.expense >= 0 ? 'text-blue-400' : 'text-rose-400'}`;
       
       chartCard.innerHTML = '';
+      paymentCard.innerHTML = '';
       
       if (monthData.length === 0) { 
-        chartCard.innerHTML = `<div class="text-center py-10 opacity-30"><i data-lucide="bar-chart-3" class="w-12 h-12 mx-auto mb-2"></i><p class="text-xs font-bold uppercase tracking-widest">Sem dados no mês</p></div>`; 
+        const emptyState = `<div class="text-center py-10 opacity-30"><i data-lucide="bar-chart-3" class="w-12 h-12 mx-auto mb-2"></i><p class="text-xs font-bold uppercase tracking-widest">Sem dados no mês</p></div>`;
+        chartCard.innerHTML = emptyState; 
+        paymentCard.innerHTML = emptyState;
         if (typeof lucide !== 'undefined') lucide.createIcons(); 
         return; 
       }
 
-      // Agrupar os valores por Categoria
+      // 1. Agrupar e Calcular os valores por Categoria
       const categoryTotals = {};
+      const paymentTotals = {};
+      const paymentCategories = {}; // Guarda a distribuição por categoria de cada forma de pagamento
+
       monthData.forEach(t => {
+        // Agrupar por categoria geral
         if (!categoryTotals[t.category]) {
           categoryTotals[t.category] = { amount: 0, type: t.type };
         }
         categoryTotals[t.category].amount += t.displayAmount;
+
+        // Agrupar por forma de pagamento (Apenas despesas)
+        if (t.type === 'expense') {
+          const method = t.paymentMethod || 'Não Definido';
+          const cat = t.category || 'Outros';
+
+          if (!paymentTotals[method]) {
+            paymentTotals[method] = 0;
+          }
+          paymentTotals[method] += t.displayAmount;
+
+          // Agrupar categorias associadas ao meio de pagamento
+          if (!paymentCategories[method]) {
+            paymentCategories[method] = {};
+          }
+          if (!paymentCategories[method][cat]) {
+            paymentCategories[method][cat] = 0;
+          }
+          paymentCategories[method][cat] += t.displayAmount;
+        }
       });
 
-      // Converter para Array ordenado por valor decrescente
+      // Converter Categorias para Array ordenado por valor decrescente
       const sortedCategories = Object.entries(categoryTotals).map(([name, data]) => ({
         name,
         amount: data.amount,
         type: data.type
       })).sort((a, b) => b.amount - a.amount);
 
-      // Obter o valor máximo para dimensionar a proporção visual das barras (escala)
-      const maxAmount = Math.max(...sortedCategories.map(c => c.amount), 1);
+      // Obter o valor máximo de categoria para dimensionar a proporção visual das barras
+      const maxCategoryAmount = Math.max(...sortedCategories.map(c => c.amount), 1);
 
-      // Injetar o novo Gráfico de Barras no Cartão
+      // Injetar o Gráfico de Barras por Categoria
       let barsHtml = `
         <div class="w-full space-y-4">
           <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-2">
@@ -1127,9 +1182,8 @@
       `;
 
       sortedCategories.forEach(cat => {
-        const percentage = Math.round((cat.amount / maxAmount) * 100);
+        const percentage = Math.round((cat.amount / maxCategoryAmount) * 100);
         const barColor = cat.type === 'income' ? 'bg-emerald-500' : 'bg-rose-500';
-        const badgeColor = cat.type === 'income' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400';
         
         barsHtml += `
           <div class="space-y-1.5 animate-in fade-in duration-300">
@@ -1151,8 +1205,121 @@
           </div>
         </div>
       `;
-
       chartCard.innerHTML = barsHtml;
+
+      // 2. Ordenar e Injetar Consolidado por Meios de Pagamento
+      const sortedPayments = Object.entries(paymentTotals).sort((a, b) => b[1] - a[1]);
+
+      if (sortedPayments.length === 0) {
+        paymentCard.innerHTML = `
+          <div class="text-center py-6 opacity-30">
+            <p class="text-xs font-bold uppercase tracking-widest">Nenhuma despesa para consolidar formas pag.</p>
+          </div>
+        `;
+      } else {
+        let paymentHtml = `
+          <div class="w-full space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-2">
+              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Meios de Pagamento (Despesas)</span>
+              <span class="text-[8px] font-bold text-slate-500 uppercase">Clique para ver detalhes</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+        `;
+
+        sortedPayments.forEach(([method, amount]) => {
+          let icon = 'credit-card';
+          let iconColor = 'text-purple-500 bg-purple-500/10';
+          
+          const m = method.toLowerCase();
+          if (m.includes('pix')) {
+            icon = 'smartphone'; 
+            iconColor = 'text-emerald-400 bg-emerald-500/10';
+          } else if (m.includes('débito') || m.includes('debito')) {
+            icon = 'credit-card';
+            iconColor = 'text-blue-400 bg-blue-500/10';
+          } else if (m.includes('crédito') || m.includes('credito')) {
+            icon = 'credit-card';
+            iconColor = 'text-purple-400 bg-purple-500/10';
+          } else if (m.includes('dinheiro')) {
+            icon = 'banknote';
+            iconColor = 'text-amber-400 bg-amber-500/10';
+          }
+
+          paymentHtml += `
+            <div class="payment-method-item bg-slate-950/40 p-3 rounded-2xl border border-slate-850 flex items-center gap-2.5 animate-in fade-in duration-300 cursor-pointer hover:bg-slate-800/40 hover:border-slate-700 active:scale-95 transition-all" data-method="${method}">
+              <div class="p-2 rounded-xl ${iconColor} shrink-0">
+                <i data-lucide="${icon}" class="w-4 h-4"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="text-[8px] font-bold text-slate-500 uppercase tracking-wider truncate">${method}</p>
+                <p class="font-black text-xs text-slate-100 mt-0.5 truncate">${formatCurrency(amount)}</p>
+              </div>
+            </div>
+          `;
+        });
+
+        paymentHtml += `
+            </div>
+          </div>
+        `;
+        paymentCard.innerHTML = paymentHtml;
+
+        // Adicionar eventos de clique para cada item de pagamento consolidado
+        paymentCard.querySelectorAll('.payment-method-item').forEach(el => {
+          el.onclick = () => {
+            const methodSelected = el.dataset.method;
+            showPaymentDetailsModal(methodSelected, paymentCategories[methodSelected] || {});
+          };
+        });
+      }
+
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+
+    // Modal com dados consolidados e visual idêntico ao de categorias gerais
+    function showPaymentDetailsModal(method, categories) {
+      document.getElementById('payment-details-title').textContent = `Gastos: ${method}`;
+      const container = document.getElementById('payment-details-chart');
+      container.innerHTML = '';
+
+      const sortedCats = Object.entries(categories).map(([name, amount]) => ({
+        name,
+        amount
+      })).sort((a, b) => b.amount - a.amount);
+
+      if (sortedCats.length === 0) {
+         container.innerHTML = `<p class="text-center text-slate-500 text-xs py-10 uppercase">Sem gastos registrados</p>`;
+      } else {
+         const maxAmount = Math.max(...sortedCats.map(c => c.amount), 1);
+         let html = '';
+         sortedCats.forEach(cat => {
+            const percentage = Math.round((cat.amount / maxAmount) * 100);
+            const barColor = 'bg-rose-500'; // Meios de pagamento filtram apenas saídas (despesas)
+            
+            html += `
+              <div class="space-y-1.5 animate-in fade-in duration-300">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-extrabold text-slate-200 flex items-center gap-1.5 uppercase tracking-wide text-[10px]">
+                    <span class="w-2 h-2 rounded-full ${barColor}"></span>
+                    ${cat.name}
+                  </span>
+                  <span class="font-black text-slate-100">${formatCurrency(cat.amount)}</span>
+                </div>
+                <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-850">
+                  <div class="h-full rounded-full ${barColor} transition-all duration-500" style="width: ${percentage}%"></div>
+                </div>
+              </div>
+            `;
+         });
+         container.innerHTML = html;
+      }
+
+      document.getElementById('payment-details-modal').classList.remove('hidden');
+      if (typeof lucide !== 'undefined') {
+         lucide.createIcons();
+      }
     }
 
     function renderFidPanel() {
@@ -1327,7 +1494,7 @@
           installmentsCount: (type === 'expense' && editIsInstallment) ? installments : 1
         });
         document.getElementById('edit-transaction-modal').classList.add('hidden');
-        showToast("Lançamento updated!", "success");
+        showToast("Lançamento atualizado!", "success");
       } catch (err) { showToast("Erro ao atualizar lançamento", "error"); }
     };
 
@@ -1362,6 +1529,7 @@
     document.getElementById('btn-close-edit-category').onclick = () => document.getElementById('edit-category-modal').classList.add('hidden');
     document.getElementById('btn-close-edit-card').onclick = () => document.getElementById('edit-card-modal').classList.add('hidden');
     document.getElementById('btn-close-edit-trans').onclick = () => document.getElementById('edit-transaction-modal').classList.add('hidden');
+    document.getElementById('btn-close-payment-details').onclick = () => document.getElementById('payment-details-modal').classList.add('hidden');
 
     function handleGenerateReport() {
       const monthData = expandedTransactions().filter(t => t.displayMonth === state.selectedHistoryMonth);
@@ -1546,4 +1714,4 @@
     };
   </script>
 </body>
-</html>
+  </html>
