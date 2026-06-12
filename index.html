@@ -267,9 +267,9 @@
         <!-- Ajustes de Categorias -->
         <div id="fid-subtab-categories" class="space-y-4">
           <form id="form-add-category" class="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-3">
-            <input type="text" id="new-category-name" placeholder="Nome da Categoria" class="w-full bg-slate-800 p-3 rounded-xl outline-none font-bold text-sm text-white" required />
+            <input type="text" id="new-category-name" placeholder="Nome da Categoria" class="w-full bg-slate-850 p-3 rounded-xl outline-none font-bold text-sm text-white" required />
             <div class="flex gap-2">
-              <select id="new-category-type" class="flex-1 bg-slate-800 p-3 rounded-xl outline-none font-black text-[10px] uppercase text-slate-200">
+              <select id="new-category-type" class="flex-1 bg-slate-850 p-3 rounded-xl outline-none font-black text-[10px] uppercase text-slate-200">
                 <option value="expense">Despesa</option>
                 <option value="income">Receita</option>
               </select>
@@ -285,9 +285,9 @@
         <!-- Ajustes de Cartões e Contas -->
         <div id="fid-subtab-cards" class="hidden space-y-4">
           <form id="form-add-card" class="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-3">
-            <input type="text" id="new-card-name" placeholder="Banco ou Nome do Cartão" class="w-full bg-slate-800 p-3 rounded-xl outline-none font-bold text-sm text-white" required />
+            <input type="text" id="new-card-name" placeholder="Banco ou Nome do Cartão" class="w-full bg-slate-850 p-3 rounded-xl outline-none font-bold text-sm text-white" required />
             <div class="flex gap-2">
-              <input type="text" id="new-card-details" placeholder="Ag/CC (Opcional)" class="flex-1 bg-slate-800 p-3 rounded-xl outline-none font-bold text-sm text-white" />
+              <input type="text" id="new-card-details" placeholder="Ag/CC (Opcional)" class="flex-1 bg-slate-850 p-3 rounded-xl outline-none font-bold text-sm text-white" />
               <button type="submit" class="p-3 bg-blue-600 rounded-xl hover:bg-blue-500 active:scale-95 transition-all text-white">
                 <i data-lucide="plus" class="w-5 h-5"></i>
               </button>
@@ -498,6 +498,21 @@
         </div>
         <!-- Gráfico de barras das categorias para esse meio de pagamento -->
         <div id="payment-details-chart" class="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+        </div>
+     </div>
+  </div>
+
+  <!-- MODAL DE DETALHES DE CATEGORIA -->
+  <div id="category-details-modal" class="hidden fixed inset-0 z-[170] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6">
+     <div class="bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 animate-in zoom-in duration-200">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+           <h2 id="category-details-title" class="font-black text-white uppercase text-xs tracking-widest font-bold">Detalhamento de Categoria</h2>
+           <button id="btn-close-category-details" class="text-slate-400 hover:text-white transition-colors">
+              <i data-lucide="x" class="w-5 h-5"></i>
+           </button>
+        </div>
+        <!-- Gráfico de barras das formas de pagamento para esta categoria -->
+        <div id="category-details-chart" class="space-y-4 max-h-[300px] overflow-y-auto pr-1">
         </div>
      </div>
   </div>
@@ -1171,12 +1186,12 @@
       // Obter o valor máximo de categoria para dimensionar a proporção visual das barras
       const maxCategoryAmount = Math.max(...sortedCategories.map(c => c.amount), 1);
 
-      // Injetar o Gráfico de Barras por Categoria
+      // Injetar o Gráfico de Barras por Categoria (Tornando as categorias interativas)
       let barsHtml = `
         <div class="w-full space-y-4">
           <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-2">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Distribuição por Categoria</span>
-            <span class="text-[8px] font-bold text-slate-500 uppercase">Valores Consolidados</span>
+            <span class="text-[8px] font-bold text-slate-500 uppercase">Clique para ver formas de pagamento</span>
           </div>
           <div class="space-y-4 max-h-[300px] overflow-y-auto pr-1">
       `;
@@ -1186,7 +1201,7 @@
         const barColor = cat.type === 'income' ? 'bg-emerald-500' : 'bg-rose-500';
         
         barsHtml += `
-          <div class="space-y-1.5 animate-in fade-in duration-300">
+          <div class="category-report-item space-y-1.5 animate-in fade-in duration-300 cursor-pointer hover:bg-slate-800/30 p-1.5 rounded-xl transition-all" data-category="${cat.name}" data-type="${cat.type}">
             <div class="flex justify-between items-center text-xs">
               <span class="font-extrabold text-slate-200 flex items-center gap-1.5 uppercase tracking-wide text-[10px]">
                 <span class="w-2 h-2 rounded-full ${barColor}"></span>
@@ -1206,6 +1221,15 @@
         </div>
       `;
       chartCard.innerHTML = barsHtml;
+
+      // Evento de clique para o pop-up de detalhes da categoria clicada
+      chartCard.querySelectorAll('.category-report-item').forEach(el => {
+        el.onclick = () => {
+          const catName = el.dataset.category;
+          const catType = el.dataset.type;
+          showCategoryDetailsModal(catName, catType, monthData);
+        };
+      });
 
       // 2. Ordenar e Injetar Consolidado por Meios de Pagamento
       const sortedPayments = Object.entries(paymentTotals).sort((a, b) => b[1] - a[1]);
@@ -1278,7 +1302,7 @@
       }
     }
 
-    // Modal com dados consolidados e visual idêntico ao de categorias gerais
+    // Modal com dados consolidados por forma de pagamento (Visual Idêntico de Categorias)
     function showPaymentDetailsModal(method, categories) {
       document.getElementById('payment-details-title').textContent = `Gastos: ${method}`;
       const container = document.getElementById('payment-details-chart');
@@ -1296,7 +1320,7 @@
          let html = '';
          sortedCats.forEach(cat => {
             const percentage = Math.round((cat.amount / maxAmount) * 100);
-            const barColor = 'bg-rose-500'; // Meios de pagamento filtram apenas saídas (despesas)
+            const barColor = 'bg-rose-500'; // Saídas
             
             html += `
               <div class="space-y-1.5 animate-in fade-in duration-300">
@@ -1319,6 +1343,64 @@
       document.getElementById('payment-details-modal').classList.remove('hidden');
       if (typeof lucide !== 'undefined') {
          lucide.createIcons();
+      }
+    }
+
+    // Modal com dados detalhados dos métodos de pagamento para a categoria clicada
+    function showCategoryDetailsModal(categoryName, categoryType, monthData) {
+      document.getElementById('category-details-title').textContent = `${categoryName}`;
+      const container = document.getElementById('category-details-chart');
+      container.innerHTML = '';
+
+      // Filtrar as transações apenas daquela categoria no mês selecionado
+      const categoryTrans = monthData.filter(t => t.category === categoryName);
+
+      // Agrupar os valores por método de pagamento
+      const methodTotals = {};
+      categoryTrans.forEach(t => {
+        // Se for receita, definimos como 'Entrada', caso contrário usamos o paymentMethod
+        const method = t.type === 'income' ? 'Entrada (Receita)' : (t.paymentMethod || 'Não Definido');
+        if (!methodTotals[method]) {
+          methodTotals[method] = 0;
+        }
+        methodTotals[method] += t.displayAmount;
+      });
+
+      const sortedMethods = Object.entries(methodTotals).map(([name, amount]) => ({
+        name,
+        amount
+      })).sort((a, b) => b.amount - a.amount);
+
+      if (sortedMethods.length === 0) {
+        container.innerHTML = `<p class="text-center text-slate-500 text-xs py-10 uppercase">Sem dados registados</p>`;
+      } else {
+        const maxAmount = Math.max(...sortedMethods.map(m => m.amount), 1);
+        let html = '';
+        sortedMethods.forEach(method => {
+          const percentage = Math.round((method.amount / maxAmount) * 100);
+          const barColor = categoryType === 'income' ? 'bg-emerald-500' : 'bg-rose-500';
+
+          html += `
+            <div class="space-y-1.5 animate-in fade-in duration-300">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-extrabold text-slate-200 flex items-center gap-1.5 uppercase tracking-wide text-[10px]">
+                  <span class="w-2 h-2 rounded-full ${barColor}"></span>
+                  ${method.name}
+                </span>
+                <span class="font-black text-slate-100">${formatCurrency(method.amount)}</span>
+              </div>
+              <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-850">
+                <div class="h-full rounded-full ${barColor} transition-all duration-500" style="width: ${percentage}%"></div>
+              </div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      }
+
+      document.getElementById('category-details-modal').classList.remove('hidden');
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
       }
     }
 
@@ -1530,6 +1612,7 @@
     document.getElementById('btn-close-edit-card').onclick = () => document.getElementById('edit-card-modal').classList.add('hidden');
     document.getElementById('btn-close-edit-trans').onclick = () => document.getElementById('edit-transaction-modal').classList.add('hidden');
     document.getElementById('btn-close-payment-details').onclick = () => document.getElementById('payment-details-modal').classList.add('hidden');
+    document.getElementById('btn-close-category-details').onclick = () => document.getElementById('category-details-modal').classList.add('hidden');
 
     function handleGenerateReport() {
       const monthData = expandedTransactions().filter(t => t.displayMonth === state.selectedHistoryMonth);
