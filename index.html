@@ -29,17 +29,17 @@
       scrollbar-width: none;
     }
     /* Estilo premium para a barra de rolagem da lista de histórico */
-    #history-list::-webkit-scrollbar {
+    #history-list::-webkit-scrollbar, #categories-popup-list::-webkit-scrollbar, #cards-popup-list::-webkit-scrollbar {
       width: 5px;
     }
-    #history-list::-webkit-scrollbar-track {
+    #history-list::-webkit-scrollbar-track, #categories-popup-list::-webkit-scrollbar-track, #cards-popup-list::-webkit-scrollbar-track {
       background: transparent;
     }
-    #history-list::-webkit-scrollbar-thumb {
+    #history-list::-webkit-scrollbar-thumb, #categories-popup-list::-webkit-scrollbar-thumb, #cards-popup-list::-webkit-scrollbar-thumb {
       background: #334155;
       border-radius: 9999px;
     }
-    #history-list::-webkit-scrollbar-thumb:hover {
+    #history-list::-webkit-scrollbar-thumb:hover, #categories-popup-list::-webkit-scrollbar-thumb:hover, #cards-popup-list::-webkit-scrollbar-thumb:hover {
       background: #475569;
     }
     @media print {
@@ -70,6 +70,7 @@
 </head>
 <body class="bg-black text-slate-100 overflow-hidden">
 
+  <!-- -->
   <!-- TELA DE APRESENTAÇÃO (SPLASH SCREEN) -->
   <div id="splash-screen" class="fixed inset-0 bg-slate-950 z-[300] flex flex-col items-center justify-center transition-all duration-700 ease-in-out">
     <div class="relative flex flex-col items-center gap-6">
@@ -100,6 +101,7 @@
     <span id="toast-text" class="text-xs font-bold uppercase tracking-wider"></span>
   </div>
 
+  <!-- -->
   <!-- MAIN APP SCREEN (Painel Principal) -->
   <div id="app-screen" class="h-screen flex flex-col bg-black text-slate-100 overflow-hidden">
     
@@ -149,6 +151,7 @@
       </div>
     </nav>
 
+    <!-- -->
     <!-- Conteúdo Dinâmico das Abas -->
     <main class="flex-1 overflow-y-auto px-4 pb-10 no-print">
       
@@ -231,7 +234,8 @@
         </div>
       </section>
 
-      <!-- Relatório (Gráfico de Barras por Categoria e Meios de Pagamento) -->
+      <!-- -->
+      <!-- Relatório -->
       <section id="tab-report" class="tab-content hidden space-y-6">
          <div class="flex items-center gap-3 px-1">
            <div class="p-3 bg-blue-600/10 rounded-2xl text-blue-500"><i data-lucide="bar-chart-3" class="w-6 h-6"></i></div>
@@ -260,40 +264,43 @@
       <!-- Ajustes -->
       <section id="tab-fid" class="tab-content hidden space-y-6">
         <div class="flex gap-1 p-1 bg-slate-900 rounded-xl border border-slate-800 overflow-x-auto scrollbar-hide">
-          <button id="subtab-categories-btn" class="subtab-btn flex-1 py-2 px-3 rounded-lg text-[9px] font-black uppercase whitespace-nowrap bg-slate-800 text-white">Categorias</button>
-          <button id="subtab-cards-btn" class="subtab-btn flex-1 py-2 px-3 rounded-lg text-[9px] font-black uppercase whitespace-nowrap text-slate-500">Contas / Cartões</button>
+          <button id="subtab-categories-btn" class="subtab-btn flex-1 py-3 px-4 rounded-lg text-[10px] font-black uppercase whitespace-nowrap bg-slate-800 text-white transition-all flex items-center justify-center gap-2">
+            <i data-lucide="tag" class="w-3.5 h-3.5"></i> Categorias
+          </button>
+          <button id="subtab-cards-btn" class="subtab-btn flex-1 py-3 px-4 rounded-lg text-[10px] font-black uppercase whitespace-nowrap text-slate-500 transition-all flex items-center justify-center gap-2">
+            <i data-lucide="credit-card" class="w-3.5 h-3.5"></i> Contas / Cartões
+          </button>
         </div>
 
-        <!-- Ajustes de Categorias -->
+        <!-- Ajustes de Categorias (Simplificado para acionar Popup) -->
         <div id="fid-subtab-categories" class="space-y-4">
-          <form id="form-add-category" class="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-3">
-            <input type="text" id="new-category-name" placeholder="Nome da Categoria" class="w-full bg-slate-850 p-3 rounded-xl outline-none font-bold text-sm text-white" required />
-            <div class="flex gap-2">
-              <select id="new-category-type" class="flex-1 bg-slate-850 p-3 rounded-xl outline-none font-black text-[10px] uppercase text-slate-200">
-                <option value="expense">Despesa</option>
-                <option value="income">Receita</option>
-              </select>
-              <button type="submit" class="p-3 bg-blue-600 rounded-xl hover:bg-blue-500 active:scale-95 transition-all text-white">
-                <i data-lucide="plus" class="w-5 h-5"></i>
-              </button>
+          <div class="p-6 bg-slate-900 rounded-[2rem] border border-slate-800 text-center space-y-4">
+            <div class="p-4 bg-blue-600/10 text-blue-400 rounded-full w-14 h-14 flex items-center justify-center mx-auto">
+              <i data-lucide="tag" class="w-6 h-6"></i>
             </div>
-          </form>
-          <div id="categories-list" class="space-y-2">
+            <div>
+              <h3 class="font-black text-white text-base uppercase tracking-tight">Categorias de Fluxo</h3>
+              <p id="fid-categories-summary-text" class="text-[10px] text-slate-500 font-bold mt-1 uppercase">Carregando categorias...</p>
+            </div>
+            <button id="btn-open-categories-manager" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-blue-900/30 font-bold flex items-center justify-center gap-2">
+              <i data-lucide="sliders" class="w-4 h-4"></i> Gerenciar Categorias
+            </button>
           </div>
         </div>
 
-        <!-- Ajustes de Cartões e Contas -->
+        <!-- Ajustes de Cartões e Contas (Simplificado para acionar Popup) -->
         <div id="fid-subtab-cards" class="hidden space-y-4">
-          <form id="form-add-card" class="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-3">
-            <input type="text" id="new-card-name" placeholder="Banco ou Nome do Cartão" class="w-full bg-slate-850 p-3 rounded-xl outline-none font-bold text-sm text-white" required />
-            <div class="flex gap-2">
-              <input type="text" id="new-card-details" placeholder="Ag/CC (Opcional)" class="flex-1 bg-slate-850 p-3 rounded-xl outline-none font-bold text-sm text-white" />
-              <button type="submit" class="p-3 bg-blue-600 rounded-xl hover:bg-blue-500 active:scale-95 transition-all text-white">
-                <i data-lucide="plus" class="w-5 h-5"></i>
-              </button>
+          <div class="p-6 bg-slate-900 rounded-[2rem] border border-slate-800 text-center space-y-4">
+            <div class="p-4 bg-purple-600/10 text-purple-400 rounded-full w-14 h-14 flex items-center justify-center mx-auto">
+              <i data-lucide="credit-card" class="w-6 h-6"></i>
             </div>
-          </form>
-          <div id="cards-list" class="space-y-2">
+            <div>
+              <h3 class="font-black text-white text-base uppercase tracking-tight">Contas e Cartões</h3>
+              <p id="fid-cards-summary-text" class="text-[10px] text-slate-500 font-bold mt-1 uppercase">Carregando contas...</p>
+            </div>
+            <button id="btn-open-cards-manager" class="w-full py-3.5 bg-purple-600 hover:bg-purple-500 active:scale-95 text-white rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-purple-900/30 font-bold flex items-center justify-center gap-2">
+              <i data-lucide="sliders" class="w-4 h-4"></i> Gerenciar Contas / Cartões
+            </button>
           </div>
         </div>
 
@@ -319,6 +326,7 @@
     </main>
   </div>
 
+  <!-- -->
   <!-- MODAL DO EXTRATO DETALHADO -->
   <div id="statement-modal" class="hidden fixed inset-0 z-[160] bg-white flex flex-col">
      <header class="bg-slate-900 px-6 py-4 flex justify-between items-center no-print shrink-0">
@@ -371,19 +379,99 @@
      </div>
   </div>
 
+  <!-- POPUP EXCLUSIVO DE ADICIONAR E VER CATEGORIAS (Novo Requisito) -->
+  <div id="categories-manager-modal" class="hidden fixed inset-0 z-[180] bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-slate-900 w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 flex flex-col max-h-[90vh] animate-in zoom-in duration-200">
+      
+      <!-- Cabeçalho do Popup -->
+      <div class="flex justify-between items-center border-b border-slate-800 pb-4 mb-4">
+        <div>
+          <h2 class="font-black text-white uppercase text-xs tracking-widest font-bold">Gerenciar Categorias</h2>
+          <p class="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1">Lançamentos e Fluxos</p>
+        </div>
+        <button id="btn-close-categories-manager" class="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-xl transition-all">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Formulário de Nova Categoria com Caixa Ultra Escura -->
+      <form id="form-add-category" class="p-4 bg-slate-950/40 rounded-2xl border border-slate-850 space-y-3 shrink-0 mb-4">
+        <div class="space-y-1">
+          <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-bold">Nova Categoria</label>
+          <input type="text" id="new-category-name" placeholder="Nome da Categoria (Mercado, Bónus...)" class="w-full bg-slate-950 border border-slate-850 p-3.5 rounded-xl outline-none font-bold text-sm text-white focus:border-blue-500" required />
+        </div>
+        <div class="flex gap-2">
+          <div class="flex-1 space-y-1">
+            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-bold">Tipo de Fluxo</label>
+            <select id="new-category-type" class="w-full bg-slate-950 border border-slate-850 p-3 rounded-xl outline-none font-black text-[10px] uppercase text-slate-200 cursor-pointer">
+              <option value="expense">Despesa</option>
+              <option value="income">Receita</option>
+            </select>
+          </div>
+          <button type="submit" class="self-end p-3.5 bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all text-white rounded-xl font-bold flex items-center justify-center gap-1 shadow-lg shadow-blue-900/20">
+            <i data-lucide="plus" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </form>
+
+      <!-- Lista das Categorias já Cadastradas no Popup -->
+      <div class="flex-1 overflow-y-auto pr-1.5 space-y-2.5" id="categories-popup-list">
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP EXCLUSIVO DE ADICIONAR E VER CONTAS / CARTÕES -->
+  <div id="cards-manager-modal" class="hidden fixed inset-0 z-[180] bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-slate-900 w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 flex flex-col max-h-[90vh] animate-in zoom-in duration-200">
+      
+      <!-- Cabeçalho -->
+      <div class="flex justify-between items-center border-b border-slate-800 pb-4 mb-4">
+        <div>
+          <h2 class="font-black text-white uppercase text-xs tracking-widest font-bold">Gerenciar Contas & Cartões</h2>
+          <p class="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1">Meios de Pagamento</p>
+        </div>
+        <button id="btn-close-cards-manager" class="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-xl transition-all">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Formulário com visual escuro premium -->
+      <form id="form-add-card" class="p-4 bg-slate-950/40 rounded-2xl border border-slate-850 space-y-3 shrink-0 mb-4">
+        <div class="space-y-1">
+          <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-bold">Banco ou Nome do Cartão</label>
+          <input type="text" id="new-card-name" placeholder="Ex: Nubank, Itaú..." class="w-full bg-slate-950 border border-slate-850 p-3 rounded-xl outline-none font-bold text-sm text-white focus:border-blue-500" required />
+        </div>
+        <div class="flex gap-2">
+          <div class="flex-1 space-y-1">
+            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-bold">Ag/CC ou Detalhes (Opcional)</label>
+            <input type="text" id="new-card-details" placeholder="Ex: CC 1234-5" class="w-full bg-slate-950 border border-slate-850 p-3 rounded-xl outline-none font-bold text-xs text-white focus:border-blue-500" />
+          </div>
+          <button type="submit" class="self-end p-3 bg-purple-600 hover:bg-purple-500 active:scale-95 transition-all text-white rounded-xl font-bold">
+            <i data-lucide="plus" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </form>
+
+      <!-- Lista das Contas -->
+      <div class="flex-1 overflow-y-auto pr-1.5 space-y-2.5" id="cards-popup-list">
+      </div>
+    </div>
+  </div>
+
+  <!-- -->
   <!-- MODAL DE EDIÇÃO DE CATEGORIA -->
-  <div id="edit-category-modal" class="hidden fixed inset-0 z-[170] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6">
+  <div id="edit-category-modal" class="hidden fixed inset-0 z-[190] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6">
      <div class="bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 text-center animate-in zoom-in duration-200">
         <h2 class="font-black text-white uppercase text-xs tracking-widest mb-6 font-bold">Editar Categoria</h2>
         <form id="form-edit-category" class="space-y-4">
            <input type="hidden" id="edit-category-id" />
            <div class="space-y-1 text-left">
              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Nome da Categoria</label>
-             <input type="text" id="edit-category-name" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-2xl outline-none font-bold text-sm text-white focus:border-blue-500 text-center" required />
+             <input type="text" id="edit-category-name" class="w-full p-4 bg-slate-950 border border-slate-850 rounded-2xl outline-none font-bold text-sm text-white focus:border-blue-500 text-center" required />
            </div>
            <div class="space-y-1 text-left">
              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Tipo de Fluxo</label>
-             <select id="edit-category-type" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-2xl outline-none font-black text-xs uppercase text-white text-center">
+             <select id="edit-category-type" class="w-full p-4 bg-slate-950 border border-slate-850 rounded-2xl outline-none font-black text-xs uppercase text-white text-center">
                 <option value="expense">Despesa</option>
                 <option value="income">Receita</option>
              </select>
@@ -397,18 +485,18 @@
   </div>
 
   <!-- MODAL DE EDIÇÃO DE CONTA/CARTÃO -->
-  <div id="edit-card-modal" class="hidden fixed inset-0 z-[170] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6">
+  <div id="edit-card-modal" class="hidden fixed inset-0 z-[190] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6">
      <div class="bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 text-center animate-in zoom-in duration-200">
         <h2 class="font-black text-white uppercase text-xs tracking-widest mb-6 font-bold">Editar Conta / Cartão</h2>
         <form id="form-edit-card" class="space-y-4">
            <input type="hidden" id="edit-card-id" />
            <div class="space-y-1 text-left">
              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Nome do Banco / Cartão</label>
-             <input type="text" id="edit-card-name" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-2xl outline-none font-bold text-sm text-white focus:border-blue-500 text-center" required />
+             <input type="text" id="edit-card-name" class="w-full p-4 bg-slate-950 border border-slate-850 rounded-2xl outline-none font-bold text-sm text-white focus:border-blue-500 text-center" required />
            </div>
            <div class="grid grid-cols-2 gap-2 pt-4">
               <button type="button" id="btn-close-edit-card" class="py-4 bg-slate-800 text-slate-400 rounded-2xl font-black text-[10px] uppercase border border-slate-700 font-bold">Cancelar</button>
-              <button type="submit" class="py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase shadow-lg shadow-blue-900/40 font-bold">Guardar</button>
+              <button type="submit" class="py-4 bg-purple-600 text-white rounded-2xl font-black text-[10px] uppercase shadow-lg shadow-purple-900/40 font-bold">Guardar</button>
            </div>
         </form>
      </div>
@@ -424,29 +512,29 @@
            
            <div class="space-y-1">
              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Valor</label>
-             <input type="text" id="edit-trans-amount" inputmode="numeric" placeholder="R$ 0,00" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-2xl outline-none font-black text-lg text-white text-center focus:border-blue-500" required />
+             <input type="text" id="edit-trans-amount" inputmode="numeric" placeholder="R$ 0,00" class="w-full p-4 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-black text-lg text-white text-center focus:border-blue-500" required />
            </div>
 
            <div class="space-y-1">
              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Descrição</label>
-             <input type="text" id="edit-trans-desc" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-2xl outline-none font-bold text-sm text-white focus:border-blue-500" required />
+             <input type="text" id="edit-trans-desc" class="w-full p-4 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-bold text-sm text-white focus:border-blue-500" required />
            </div>
 
            <div class="grid grid-cols-2 gap-2">
               <div class="space-y-1">
                 <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Categoria</label>
-                <select id="edit-trans-category" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-2xl outline-none font-bold text-xs text-white uppercase">
+                <select id="edit-trans-category" class="w-full p-4 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-bold text-xs text-white uppercase">
                 </select>
               </div>
               <div class="space-y-1">
                 <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Data</label>
-                <input type="date" id="edit-trans-date" class="w-full p-3.5 bg-slate-800 border border-slate-700 rounded-2xl outline-none font-bold text-xs text-white" required />
+                <input type="date" id="edit-trans-date" class="w-full p-3.5 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-bold text-xs text-white" required />
               </div>
            </div>
 
            <div class="space-y-1">
              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Mês Ref.</label>
-             <select id="edit-trans-month" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-2xl outline-none font-bold text-xs text-white">
+             <select id="edit-trans-month" class="w-full p-4 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-bold text-xs text-white">
              </select>
            </div>
 
@@ -455,7 +543,7 @@
               <div class="grid grid-cols-2 gap-2">
                  <div class="space-y-1">
                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Forma Pag.</label>
-                   <select id="edit-trans-method" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-2xl outline-none font-bold text-xs text-white uppercase">
+                   <select id="edit-trans-method" class="w-full p-4 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-bold text-xs text-white uppercase">
                       <option value="Pix">Pix</option>
                       <option value="Dinheiro">Dinheiro</option>
                       <option value="Débito">Débito</option>
@@ -464,7 +552,7 @@
                  </div>
                  <div class="space-y-1">
                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Cartão / Conta</label>
-                   <select id="edit-trans-card" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-2xl outline-none font-bold text-xs text-white">
+                   <select id="edit-trans-card" class="w-full p-4 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-bold text-xs text-white">
                    </select>
                  </div>
               </div>
@@ -472,9 +560,9 @@
               <div class="grid grid-cols-2 gap-2 items-center">
                 <span class="text-[9px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Parcelado?</span>
                 <div class="flex gap-2">
-                  <button type="button" id="btn-edit-installment-no" class="flex-1 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700">Não</button>
+                  <button type="button" id="btn-edit-installment-no" class="flex-1 py-2 bg-slate-850 text-white rounded-xl text-xs font-bold border border-slate-750">Não</button>
                   <button type="button" id="btn-edit-installment-yes" class="flex-1 py-2 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent">Sim</button>
-                  <input type="number" id="edit-trans-installments" min="2" max="120" class="hidden w-16 p-2 bg-slate-800 text-center rounded-xl font-bold border border-slate-700 text-white text-xs" />
+                  <input type="number" id="edit-trans-installments" min="2" max="120" class="hidden w-16 p-2 bg-slate-850 text-center rounded-xl font-bold border border-slate-750 text-white text-xs" />
                 </div>
               </div>
            </div>
@@ -517,6 +605,7 @@
      </div>
   </div>
 
+  <!-- -->
   <!-- Lógica da Base de Dados Local (LocalStorage) -->
   <script>
     // Lista de meses de referência
@@ -628,7 +717,7 @@
       return { icon, iconColor };
     }
 
-    // Função de Toast personalizada sem alertas do browser
+    //    // Função de Toast personalizada sem alertas do browser
     function showToast(message, type = 'info') {
       const toast = document.getElementById('toast');
       const toastText = document.getElementById('toast-text');
@@ -726,7 +815,7 @@
       return data ? JSON.parse(data) : [];
     }
 
-    // Inicialização da Aplicação
+    //    // Inicialização da Aplicação
     function initApp() {
       // Forçar semente inicial
       seedLocalData();
@@ -895,7 +984,7 @@
       });
     }
 
-    function renderAll() {
+    //    function renderAll() {
       const validMonths = getMonthsWithTransactions();
       if (!validMonths.includes(state.selectedHistoryMonth)) {
         state.selectedHistoryMonth = validMonths[validMonths.length - 1] || `${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${new Date().getFullYear()}`;
@@ -1027,7 +1116,7 @@
       } catch (err) { showToast("Erro ao guardar", "error"); }
     };
 
-    function renderHistoryList() {
+    //    function renderHistoryList() {
       const container = document.getElementById('history-list');
       container.innerHTML = '';
       const list = expandedTransactions().filter(t => t.displayMonth === state.selectedHistoryMonth);
@@ -1174,7 +1263,7 @@
       }
     }
 
-    function renderReportChart() {
+    //    function renderReportChart() {
       const monthData = expandedTransactions().filter(t => t.displayMonth === state.selectedHistoryMonth);
       const chartCard = document.getElementById('report-chart-card');
       const paymentCard = document.getElementById('report-payment-card');
@@ -1285,7 +1374,7 @@
         };
       });
 
-      // 2. Ordenar e Injetar Consolidado por Meios de Pagamento (Removido truncate do valor)
+      // 2. Ordenar e Injetar Consolidado por Meios de Pagamento
       const sortedPayments = Object.entries(paymentTotals).sort((a, b) => b[1] - a[1]);
 
       if (sortedPayments.length === 0) {
@@ -1454,34 +1543,47 @@
       }
     }
 
-    function renderFidPanel() {
+    //    function renderFidPanel() {
       document.getElementById('fid-subtab-categories').classList.toggle('hidden', state.fidSubTab !== 'categories');
       document.getElementById('fid-subtab-cards').classList.toggle('hidden', state.fidSubTab !== 'cards');
 
-      document.getElementById('subtab-categories-btn').className = `subtab-btn flex-1 py-2 px-3 rounded-lg text-[9px] font-black uppercase whitespace-nowrap ${state.fidSubTab === 'categories' ? 'bg-slate-800 text-white' : 'text-slate-500'}`;
-      document.getElementById('subtab-cards-btn').className = `subtab-btn flex-1 py-2 px-3 rounded-lg text-[9px] font-black uppercase whitespace-nowrap ${state.fidSubTab === 'cards' ? 'bg-slate-800 text-white' : 'text-slate-500'}`;
+      document.getElementById('subtab-categories-btn').className = `subtab-btn flex-1 py-3 px-4 rounded-lg text-[10px] font-black uppercase whitespace-nowrap flex items-center justify-center gap-2 transition-all ${state.fidSubTab === 'categories' ? 'bg-slate-850 text-white' : 'text-slate-500'}`;
+      document.getElementById('subtab-cards-btn').className = `subtab-btn flex-1 py-3 px-4 rounded-lg text-[10px] font-black uppercase whitespace-nowrap flex items-center justify-center gap-2 transition-all ${state.fidSubTab === 'cards' ? 'bg-slate-850 text-white' : 'text-slate-500'}`;
       
-      if (state.fidSubTab === 'categories') renderFidCategories();
-      if (state.fidSubTab === 'cards') renderFidCards();
+      const numCategories = state.customCategories.length;
+      document.getElementById('fid-categories-summary-text').textContent = `${numCategories} ${numCategories === 1 ? 'categoria cadastrada' : 'categorias cadastradas'}`;
+
+      const numCards = state.customCards.length;
+      document.getElementById('fid-cards-summary-text').textContent = `${numCards} ${numCards === 1 ? 'conta cadastrada' : 'contas cadastradas'}`;
+
+      renderFidCategories();
+      renderFidCards();
     }
 
+    // Renderizar categorias no popup dedicado
     function renderFidCategories() {
-      const container = document.getElementById('categories-list');
+      const container = document.getElementById('categories-popup-list');
       container.innerHTML = '';
+      
+      if (state.customCategories.length === 0) {
+        container.innerHTML = `<p class="text-center text-[10px] uppercase font-bold text-slate-500 py-6">Nenhuma categoria cadastrada.</p>`;
+        return;
+      }
+
       state.customCategories.forEach(c => {
         const item = document.createElement('div');
-        item.className = "bg-slate-900/50 p-4 rounded-xl border border-slate-800 flex justify-between items-center animate-in fade-in duration-200";
+        item.className = "bg-slate-950/40 p-4 rounded-2xl border border-slate-850 flex justify-between items-center animate-in fade-in duration-200";
         item.innerHTML = `
           <div class="flex items-center gap-3">
-            <div class="w-2 h-2 rounded-full ${c.type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'}"></div>
-            <span class="font-bold text-xs uppercase text-slate-200">${c.name}</span>
+            <div class="w-2.5 h-2.5 rounded-full ${c.type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'}"></div>
+            <span class="font-bold text-xs uppercase text-slate-200 tracking-wide">${c.name}</span>
           </div>
-          <div class="flex items-center gap-2">
-            <button class="edit-cat-btn text-slate-500 hover:text-blue-500 transition-colors p-2 bg-slate-800/40 rounded-lg" data-id="${c.id}" data-name="${c.name}" data-type="${c.type}" title="Editar Categoria">
-              <i data-lucide="edit-2" class="w-4 h-4"></i>
+          <div class="flex items-center gap-1.5">
+            <button class="edit-cat-btn text-slate-400 hover:text-blue-400 transition-colors p-2 bg-slate-900 rounded-xl" data-id="${c.id}" data-name="${c.name}" data-type="${c.type}" title="Editar Categoria">
+              <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
             </button>
-            <button class="delete-cat-btn text-slate-700 hover:text-rose-500 transition-colors p-2 bg-slate-800/40 rounded-lg" data-id="${c.id}" title="Eliminar Categoria">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <button class="delete-cat-btn text-slate-600 hover:text-rose-500 transition-colors p-2 bg-slate-900 rounded-xl" data-id="${c.id}" title="Eliminar Categoria">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           </div>
         `;
@@ -1498,6 +1600,7 @@
       container.querySelectorAll('.delete-cat-btn').forEach(btn => btn.onclick = async () => { 
         await DB.deleteDoc(`categories_${LOCAL_KEY}`, btn.dataset.id); 
         showToast("Categoria removida!", "success"); 
+        renderFidPanel();
       });
 
       if (typeof lucide !== 'undefined') {
@@ -1505,23 +1608,30 @@
       }
     }
 
+    // Renderizar contas e cartões no popup dedicado
     function renderFidCards() {
-      const container = document.getElementById('cards-list');
+      const container = document.getElementById('cards-popup-list');
       container.innerHTML = '';
+
+      if (state.customCards.length === 0) {
+        container.innerHTML = `<p class="text-center text-[10px] uppercase font-bold text-slate-500 py-6">Nenhuma conta cadastrada.</p>`;
+        return;
+      }
+
       state.customCards.forEach(c => {
         const item = document.createElement('div');
-        item.className = "bg-slate-900/50 p-4 rounded-xl border border-slate-800 flex justify-between items-center animate-in fade-in duration-200";
+        item.className = "bg-slate-950/40 p-4 rounded-2xl border border-slate-850 flex justify-between items-center animate-in fade-in duration-200";
         item.innerHTML = `
           <div class="flex items-center gap-3">
             <i data-lucide="building-2" class="w-4 h-4 text-slate-500"></i>
-            <span class="font-bold text-xs uppercase text-slate-200">${c.name}</span>
+            <span class="font-bold text-xs uppercase text-slate-200 tracking-wide">${c.name}</span>
           </div>
-          <div class="flex items-center gap-2">
-            <button class="edit-card-btn text-slate-500 hover:text-blue-500 transition-colors p-2 bg-slate-800/40 rounded-lg" data-id="${c.id}" data-name="${c.name}" title="Editar Conta">
-              <i data-lucide="edit-2" class="w-4 h-4"></i>
+          <div class="flex items-center gap-1.5">
+            <button class="edit-card-btn text-slate-400 hover:text-purple-400 transition-colors p-2 bg-slate-900 rounded-xl" data-id="${c.id}" data-name="${c.name}" title="Editar Conta">
+              <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
             </button>
-            <button class="delete-card-btn text-slate-700 hover:text-rose-500 transition-colors p-2 bg-slate-800/40 rounded-lg" data-id="${c.id}" title="Eliminar Conta">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <button class="delete-card-btn text-slate-600 hover:text-rose-500 transition-colors p-2 bg-slate-900 rounded-xl" data-id="${c.id}" title="Eliminar Conta">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           </div>
         `;
@@ -1537,6 +1647,7 @@
       container.querySelectorAll('.delete-card-btn').forEach(btn => btn.onclick = async () => { 
         await DB.deleteDoc(`cards_${LOCAL_KEY}`, btn.dataset.id); 
         showToast("Conta removida!", "success"); 
+        renderFidPanel();
       });
 
       if (typeof lucide !== 'undefined') {
@@ -1567,6 +1678,7 @@
 
         document.getElementById('edit-category-modal').classList.add('hidden');
         showToast("Categoria alterada com sucesso!", "success");
+        renderFidPanel();
       } catch (err) { showToast("Erro ao atualizar categoria", "error"); }
     };
 
@@ -1592,6 +1704,7 @@
 
         document.getElementById('edit-card-modal').classList.add('hidden');
         showToast("Conta alterada com sucesso!", "success");
+        renderFidPanel();
       } catch (err) { showToast("Erro ao atualizar conta", "error"); }
     };
 
@@ -1647,11 +1760,11 @@
       if (editIsInstallment) {
         input.classList.remove('hidden');
         btnNo.className = "flex-1 py-2 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent";
-        btnYes.className = "flex-1 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
+        btnYes.className = "flex-1 py-2 bg-slate-850 text-white rounded-xl text-xs font-bold border border-slate-750";
       } else {
         input.classList.add('hidden');
         btnYes.className = "flex-1 py-2 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent";
-        btnNo.className = "flex-1 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
+        btnNo.className = "flex-1 py-2 bg-slate-850 text-white rounded-xl text-xs font-bold border border-slate-750";
       }
     }
 
@@ -1664,7 +1777,7 @@
     document.getElementById('btn-close-payment-details').onclick = () => document.getElementById('payment-details-modal').classList.add('hidden');
     document.getElementById('btn-close-category-details').onclick = () => document.getElementById('category-details-modal').classList.add('hidden');
 
-    function handleGenerateReport() {
+    //    function handleGenerateReport() {
       const monthData = expandedTransactions().filter(t => t.displayMonth === state.selectedHistoryMonth);
       if (monthData.length === 0) { showToast(`Sem dados em ${state.selectedHistoryMonth}`, "warning"); return; }
       const summary = getMonthSummary(state.selectedHistoryMonth);
@@ -1775,23 +1888,50 @@
       reader.readAsText(file);
     };
 
-    document.getElementById('subtab-categories-btn').onclick = () => { state.fidSubTab = 'categories'; renderFidPanel(); };
+    //    document.getElementById('subtab-categories-btn').onclick = () => { state.fidSubTab = 'categories'; renderFidPanel(); };
     document.getElementById('subtab-cards-btn').onclick = () => { state.fidSubTab = 'cards'; renderFidPanel(); };
     
+    // Controlo de Modals Exclusivos (Novo Requisito)
+    document.getElementById('btn-open-categories-manager').onclick = () => {
+      renderFidCategories();
+      document.getElementById('categories-manager-modal').classList.remove('hidden');
+    };
+    document.getElementById('btn-close-categories-manager').onclick = () => {
+      document.getElementById('categories-manager-modal').classList.add('hidden');
+      renderFidPanel();
+    };
+
+    document.getElementById('btn-open-cards-manager').onclick = () => {
+      renderFidCards();
+      document.getElementById('cards-manager-modal').classList.remove('hidden');
+    };
+    document.getElementById('btn-close-cards-manager').onclick = () => {
+      document.getElementById('cards-manager-modal').classList.add('hidden');
+      renderFidPanel();
+    };
+
+    // Cadastro de Categorias via Popup
     document.getElementById('form-add-category').onsubmit = async (e) => {
       e.preventDefault();
       const name = document.getElementById('new-category-name').value.trim();
       const type = document.getElementById('new-category-type').value;
       await DB.addDoc(`categories_${LOCAL_KEY}`, { name, type });
-      document.getElementById('new-category-name').value = ''; showToast("Adicionado!", "success");
+      document.getElementById('new-category-name').value = ''; 
+      showToast("Adicionado com sucesso!", "success");
+      renderFidCategories();
     };
+
+    // Cadastro de Contas via Popup
     document.getElementById('form-add-card').onsubmit = async (e) => {
       e.preventDefault();
       const bank = document.getElementById('new-card-name').value.trim();
       const desc = document.getElementById('new-card-details').value.trim();
       const name = desc ? `${bank} (${desc})` : bank;
       await DB.addDoc(`cards_${LOCAL_KEY}`, { name });
-      document.getElementById('new-card-name').value = ''; document.getElementById('new-card-details').value = ''; showToast("Adicionado!", "success");
+      document.getElementById('new-card-name').value = ''; 
+      document.getElementById('new-card-details').value = ''; 
+      showToast("Adicionado com sucesso!", "success");
+      renderFidCards();
     };
     
     document.getElementById('btn-installment-no').onclick = () => { 
@@ -1847,4 +1987,4 @@
     };
   </script>
 </body>
-</html>
+  </html>
