@@ -300,22 +300,23 @@
         </div>
       </section>
 
-      <!-- Relatório -->
-      <section id="tab-report" class="tab-content hidden space-y-6">
-         <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide" id="report-months-scroll">
+      <!-- Relatório Otimizado para Ecrãs Móveis (Mais Compacto e Ajustável) -->
+      <section id="tab-report" class="tab-content hidden space-y-4">
+         <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide" id="report-months-scroll">
          </div>
          
-         <!-- Gráfico de Categoria -->
-         <div id="report-chart-card" class="bg-slate-900 p-6 rounded-[2.5rem] border border-slate-800 flex flex-col justify-center min-h-[220px]">
+         <!-- Gráfico de Categoria (Compacto) -->
+         <div id="report-chart-card" class="bg-slate-900 p-4 rounded-3xl border border-slate-800 flex flex-col justify-center min-h-[140px]">
          </div>
 
-         <!-- Consolidado por Meios de Pagamento -->
-         <div id="report-payment-card" class="bg-slate-900 p-6 rounded-[2.5rem] border border-slate-800 flex flex-col justify-center">
+         <!-- Consolidado por Meios de Pagamento (Compacto) -->
+         <div id="report-payment-card" class="bg-slate-900 p-4 rounded-3xl border border-slate-800 flex flex-col justify-center">
          </div>
 
-         <div id="report-balance-card" class="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 text-center">
+         <!-- Saldo para Gastar no Mês (Compacto) -->
+         <div id="report-balance-card" class="bg-slate-900 p-5 rounded-3xl border border-slate-800 text-center">
            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Saldo para gastar no mês</p>
-           <h3 id="report-balance-value" class="text-4xl font-black text-blue-400">R$ 0,00</h3>
+           <h3 id="report-balance-value" class="text-3xl font-black text-blue-400">R$ 0,00</h3>
          </div>
       </section>
 
@@ -617,10 +618,8 @@
 
   <!-- Lógica da Base de Dados Local (LocalStorage) -->
   <script>
-    // Chave fixa local única
     const LOCAL_KEY = 'samuel';
 
-    // Estado da Aplicação
     const state = {
       transactions: [],
       customCategories: [],
@@ -638,7 +637,6 @@
     let editIsInstallment = false;
     let confirmModalAction = null;
 
-    // Geração dinâmica de meses de faturamento
     function getBillingMonthsList() {
       const monthsSet = new Set();
       for (let i = -6; i <= 6; i++) {
@@ -670,7 +668,6 @@
       });
     }
 
-    // Modal de confirmação customizado
     function showConfirmModal(title, message, onConfirm) {
        const modal = document.getElementById('confirm-modal');
        document.getElementById('confirm-modal-title').textContent = title;
@@ -773,7 +770,7 @@
         toast.className += ' bg-rose-955 border-rose-800 text-rose-200';
         iconName = 'x-circle';
       } else {
-        toast.className += ' bg-emerald-950 border-emerald-800 text-emerald-200';
+        toast.className += ' bg-emerald-955 border-emerald-800 text-emerald-200';
         iconName = 'check-circle';
       }
       
@@ -1374,9 +1371,7 @@
         const methodContainer = document.getElementById('edit-trans-method-container');
         const expenseOpts = document.getElementById('edit-trans-expense-options');
 
-        // AJUSTE DINÂMICO DOS CAMPOS DE ACORDO COM O TIPO
         if (type === 'expense') {
-          // Lado a lado: Reduz o tamanho do Mês de Ref. e ativa a Forma de Pagamento
           monthContainer.classList.remove('col-span-2');
           monthContainer.classList.add('col-span-1');
           methodContainer.classList.remove('hidden');
@@ -1399,7 +1394,6 @@
           document.getElementById('edit-trans-installments').value = installmentsCount;
           updateEditInstallmentButtons();
         } else {
-          // Receita: O Mês de Referência expande-se para ocupar todo o ecrã
           monthContainer.classList.remove('col-span-1');
           monthContainer.classList.add('col-span-2');
           methodContainer.classList.add('hidden');
@@ -1415,6 +1409,7 @@
       }
     }
 
+    /* Geração de Relatório com Visual Otimizado e Alturas Limitadas para Caber Perfeitamente no Ecrã */
     function renderReportChart() {
       const monthData = expandedTransactions().filter(t => t.displayMonth === state.selectedHistoryMonth);
       const chartCard = document.getElementById('report-chart-card');
@@ -1425,13 +1420,13 @@
       balanceVal.textContent = formatCurrency(summary.income - summary.expense);
       
       const balanceCard = document.getElementById('report-balance-card');
-      balanceCard.className = `bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 text-center ${summary.income - summary.expense >= 0 ? 'text-blue-400' : 'text-rose-400'}`;
+      balanceCard.className = `bg-slate-900 p-5 rounded-3xl border border-slate-800 text-center ${summary.income - summary.expense >= 0 ? 'text-blue-400' : 'text-rose-400'}`;
       
       chartCard.innerHTML = '';
       paymentCard.innerHTML = '';
       
       if (monthData.length === 0) { 
-        const emptyState = `<div class="text-center py-10 opacity-30"><i data-lucide="bar-chart-3" class="w-12 h-12 mx-auto mb-2"></i><p class="text-xs font-bold uppercase tracking-widest">Sem dados no mês</p></div>`;
+        const emptyState = `<div class="text-center py-6 opacity-30"><i data-lucide="bar-chart-3" class="w-10 h-10 mx-auto mb-1"></i><p class="text-[9px] font-black uppercase tracking-widest">Sem dados no mês</p></div>`;
         chartCard.innerHTML = emptyState; 
         paymentCard.innerHTML = emptyState;
         if (typeof lucide !== 'undefined') lucide.createIcons(); 
@@ -1475,13 +1470,14 @@
 
       const maxCategoryAmount = Math.max(...sortedCategories.map(c => c.amount), 1);
 
+      // Gráfico compacto e com limite de rolagem para encaixar no telemóvel
       let barsHtml = `
-        <div class="w-full space-y-4">
-          <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-2">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Distribuição por Categoria</span>
-            <span class="text-[8px] font-bold text-slate-500 uppercase">Clique para ver detalhes</span>
+        <div class="w-full space-y-3">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-1 shrink-0">
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Distribuição por Categoria</span>
+            <span class="text-[8px] font-bold text-slate-500 uppercase">Toque para ver detalhes</span>
           </div>
-          <div class="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+          <div class="space-y-2 max-h-[160px] overflow-y-auto pr-1 scrollbar-hide">
       `;
 
       sortedCategories.forEach(cat => {
@@ -1489,15 +1485,15 @@
         const barColor = cat.type === 'income' ? 'bg-emerald-500' : 'bg-rose-500';
         
         barsHtml += `
-          <div class="category-report-item space-y-1.5 animate-in fade-in duration-300 cursor-pointer hover:bg-slate-800/30 p-1.5 rounded-xl transition-all" data-category="${cat.name}" data-type="${cat.type}">
-            <div class="flex justify-between items-center text-xs">
-              <span class="font-extrabold text-slate-200 flex items-center gap-1.5 uppercase tracking-wide text-[10px]">
-                <span class="w-2 h-2 rounded-full ${barColor}"></span>
+          <div class="category-report-item space-y-1 animate-in fade-in duration-300 cursor-pointer hover:bg-slate-800/20 p-1.5 rounded-xl transition-all" data-category="${cat.name}" data-type="${cat.type}">
+            <div class="flex justify-between items-center text-[11px]">
+              <span class="font-extrabold text-slate-200 flex items-center gap-1.5 uppercase tracking-wide text-[9px]">
+                <span class="w-1.5 h-1.5 rounded-full ${barColor}"></span>
                 ${cat.name}
               </span>
-              <span class="font-black text-slate-100 whitespace-nowrap">${formatCurrency(cat.amount)}</span>
+              <span class="font-black text-slate-100 whitespace-nowrap text-[11px]">${formatCurrency(cat.amount)}</span>
             </div>
-            <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800">
+            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800/60">
               <div class="h-full rounded-full ${barColor} transition-all duration-500" style="width: ${percentage}%"></div>
             </div>
           </div>
@@ -1527,13 +1523,14 @@
           </div>
         `;
       } else {
+        // Meios de pagamento ultra-compactos para caber no telemóvel
         let paymentHtml = `
-          <div class="w-full space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-2">
-              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Meios de Pagamento (Despesas)</span>
-              <span class="text-[8px] font-bold text-slate-500 uppercase">Clique para ver detalhes</span>
+          <div class="w-full space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-1 shrink-0">
+              <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Meios de Pagamento (Despesas)</span>
+              <span class="text-[8px] font-bold text-slate-500 uppercase">Toque para ver detalhes</span>
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-2">
         `;
 
         sortedPayments.forEach(([method, amount]) => {
@@ -1556,13 +1553,13 @@
           }
 
           paymentHtml += `
-            <div class="payment-method-item bg-slate-950/40 p-3 rounded-2xl border border-slate-800 flex items-center gap-2.5 animate-in fade-in duration-300 cursor-pointer hover:bg-slate-800/40 hover:border-slate-700 active:scale-95 transition-all" data-method="${method}">
-              <div class="p-2 rounded-xl ${iconColor} shrink-0">
-                <i data-lucide="${icon}" class="w-4 h-4"></i>
+            <div class="payment-method-item bg-slate-950/50 p-2 rounded-xl border border-slate-800/80 flex items-center gap-2 animate-in fade-in duration-300 cursor-pointer hover:bg-slate-800/30 active:scale-95 transition-all" data-method="${method}">
+              <div class="p-1.5 rounded-lg ${iconColor} shrink-0">
+                <i data-lucide="${icon}" class="w-3.5 h-3.5"></i>
               </div>
               <div class="min-w-0 flex-1">
-                <p class="text-[8px] font-bold text-slate-500 uppercase tracking-wider truncate">${method}</p>
-                <p class="font-black text-xs text-slate-100 mt-0.5 whitespace-nowrap">${formatCurrency(amount)}</p>
+                <p class="text-[8px] font-bold text-slate-500 uppercase tracking-wider truncate leading-tight">${method}</p>
+                <p class="font-black text-[11px] text-slate-100 mt-0.5 whitespace-nowrap leading-none">${formatCurrency(amount)}</p>
               </div>
             </div>
           `;
@@ -1859,7 +1856,7 @@
           installmentsCount: (type === 'expense' && editIsInstallment) ? installments : 1
         });
         document.getElementById('edit-transaction-modal').classList.add('hidden');
-        showToast("Lançamento atualizado!", "success");
+        showToast("Lançamento updated!", "success");
       } catch (err) { showToast("Erro ao atualizar lançamento", "error"); }
     };
 
