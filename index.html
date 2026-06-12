@@ -639,13 +639,13 @@
       
       let iconName = 'info';
       if (type === 'warning') {
-        toast.classList.add('bg-amber-950', 'border-amber-800', 'text-amber-200');
+        toast.className += ' bg-amber-950 border-amber-800 text-amber-200';
         iconName = 'alert-triangle';
       } else if (type === 'error') {
-        toast.classList.add('bg-rose-950', 'border-rose-800', 'text-rose-200');
+        toast.className += ' bg-rose-950 border-rose-800 text-rose-200';
         iconName = 'x-circle';
       } else {
-        toast.classList.add('bg-emerald-950', 'border-emerald-800', 'text-emerald-200');
+        toast.className += ' bg-emerald-950 border-emerald-800 text-emerald-200';
         iconName = 'check-circle';
       }
       
@@ -1285,7 +1285,7 @@
         };
       });
 
-      // 2. Ordenar e Injetar Consolidado por Meios de Pagamento
+      // 2. Ordenar e Injetar Consolidado por Meios de Pagamento (Removido truncate do valor)
       const sortedPayments = Object.entries(paymentTotals).sort((a, b) => b[1] - a[1]);
 
       if (sortedPayments.length === 0) {
@@ -1330,7 +1330,7 @@
               </div>
               <div class="min-w-0">
                 <p class="text-[8px] font-bold text-slate-500 uppercase tracking-wider truncate">${method}</p>
-                <p class="font-black text-xs text-slate-100 mt-0.5 truncate">${formatCurrency(amount)}</p>
+                <p class="font-black text-xs text-slate-100 mt-0.5 whitespace-nowrap">${formatCurrency(amount)}</p>
               </div>
             </div>
           `;
@@ -1356,7 +1356,7 @@
       }
     }
 
-    // Modal com dados consolidados por forma de pagamento (Visual de Quadrinhos)
+    // Modal com dados consolidados por forma de pagamento - Visual de Quadrinhos (Removido truncate do valor)
     function showPaymentDetailsModal(method, categories) {
       document.getElementById('payment-details-title').textContent = `Gastos: ${method}`;
       const container = document.getElementById('payment-details-chart');
@@ -1383,7 +1383,7 @@
                 </div>
                 <div class="min-w-0">
                   <p class="text-[8px] font-bold text-slate-500 uppercase tracking-wider truncate">${cat.name}</p>
-                  <p class="font-black text-xs text-slate-100 mt-0.5 truncate">${formatCurrency(cat.amount)}</p>
+                  <p class="font-black text-xs text-slate-100 mt-0.5 whitespace-nowrap">${formatCurrency(cat.amount)}</p>
                 </div>
               </div>
             `;
@@ -1398,7 +1398,7 @@
       }
     }
 
-    // Modal com dados detalhados dos métodos de pagamento para a categoria clicada (Visual de Grelha / Quadrinhos)
+    // Modal com dados detalhados dos métodos de pagamento para a categoria clicada (Removido truncate do valor)
     function showCategoryDetailsModal(categoryName, categoryType, monthData) {
       document.getElementById('category-details-title').textContent = `${categoryName}`;
       const container = document.getElementById('category-details-chart');
@@ -1439,7 +1439,7 @@
               </div>
               <div class="min-w-0">
                 <p class="text-[8px] font-bold text-slate-500 uppercase tracking-wider truncate">${method.name}</p>
-                <p class="font-black text-xs text-slate-100 mt-0.5 truncate">${formatCurrency(method.amount)}</p>
+                <p class="font-black text-xs text-slate-100 mt-0.5 whitespace-nowrap">${formatCurrency(method.amount)}</p>
               </div>
             </div>
           `;
