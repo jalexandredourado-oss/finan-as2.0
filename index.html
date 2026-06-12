@@ -201,7 +201,7 @@
              <div id="expense-options" class="space-y-3">
                 <div class="space-y-1">
                    <label class="text-[9px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">Cartão / Conta (Opcional)</label>
-                   <select id="transaction-card" class="w-full bg-slate-900 border border-slate-800 p-3 rounded-2xl outline-none font-bold text-xs text-slate-200">
+                   <select id="transaction-card" class="w-full bg-slate-900 border border-slate-800 p-3 rounded-2xl outline-none font-bold text-xs text-slate-200 uppercase">
                    </select>
                 </div>
                
@@ -231,9 +231,9 @@
         </div>
       </section>
 
-      <!-- Relatório (Sem Cabeçalhos Redundantes, Otimizado conforme Screenshot_20260611_230312_Chrome(1).jpg) -->
+      <!-- Relatório -->
       <section id="tab-report" class="tab-content hidden space-y-6">
-         <!-- O seletor de meses sobe diretamente para o topo, otimizando o ecrã no telemóvel -->
+         <!-- O seletor de meses sobe diretamente para o topo, otimizando o ecrã conforme Screenshot_20260611_230312_Chrome(1).jpg -->
          <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide" id="report-months-scroll">
          </div>
          
@@ -251,7 +251,7 @@
          </div>
       </section>
 
-      <!-- Seção Ajustes de Fundo (Apenas reserva estrutural, pois agora abre diretamente no Popup) -->
+      <!-- Seção Ajustes de Fundo -->
       <section id="tab-fid" class="tab-content hidden">
       </section>
     </main>
@@ -272,25 +272,25 @@
         <div class="border-b-4 border-slate-900 pb-10 mb-10 flex justify-between items-end">
            <div>
               <h1 class="text-4xl font-black tracking-tighter uppercase leading-none">Samuel Finanças</h1>
-              <p class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mt-2">Relatório Consolidado</p>
+              <p class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mt-2 font-bold">Relatório Consolidado</p>
            </div>
            <div class="text-right">
-              <p class="text-[10px] font-black uppercase text-slate-400">Mês de Referência</p>
+              <p class="text-[10px] font-black uppercase text-slate-400 font-bold">Mês de Referência</p>
               <p id="statement-period" class="font-black text-xl leading-none">--/----</p>
               <p class="text-[8px] text-slate-400 font-bold mt-2 uppercase">Emissão: <span id="statement-date" class="font-bold">--/--/----</span></p>
            </div>
         </div>
         <div class="grid grid-cols-3 gap-6 mb-12">
            <div class="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">
-              <p class="text-[9px] font-black text-emerald-600 uppercase mb-1">Entradas</p>
+              <p class="text-[9px] font-black text-emerald-600 uppercase mb-1 font-bold">Entradas</p>
               <p id="statement-income" class="text-2xl font-black text-emerald-700">R$ 0,00</p>
            </div>
            <div class="bg-rose-50 p-6 rounded-3xl border border-rose-100">
-              <p class="text-[9px] font-black text-rose-600 uppercase mb-1">Saídas</p>
+              <p class="text-[9px] font-black text-rose-600 uppercase mb-1 font-bold">Saídas</p>
               <p id="statement-expense" class="text-2xl font-black text-rose-700">R$ 0,00</p>
            </div>
            <div class="bg-slate-100 p-6 rounded-3xl">
-              <p class="text-[9px] font-black text-slate-500 uppercase mb-1">Saldo</p>
+              <p class="text-[9px] font-black text-slate-500 uppercase mb-1 font-bold">Saldo</p>
               <p id="statement-balance" class="text-2xl font-black text-slate-900">R$ 0,00</p>
            </div>
         </div>
@@ -309,7 +309,7 @@
      </div>
   </div>
 
-  <!-- POPUP UNIFICADO DE AJUSTES (Abre Imediatamente ao Clicar em Ajustes) -->
+  <!-- POPUP UNIFICADO DE AJUSTES -->
   <div id="ajustes-manager-modal" class="hidden fixed inset-0 z-[180] bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
     <div class="bg-slate-900 w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 flex flex-col max-h-[90vh] animate-in zoom-in duration-200">
       
@@ -385,7 +385,7 @@
         </div>
       </div>
 
-      <!-- Cópia de Segurança Integrada Compacta (Fim do Modal de Ajustes) -->
+      <!-- Cópia de Segurança Integrada Compacta -->
       <div class="border-t border-slate-800 pt-4 mt-4 flex justify-between items-center shrink-0">
         <span class="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Backup de dados:</span>
         <div class="flex gap-1.5">
@@ -495,7 +495,7 @@
                  </div>
                  <div class="space-y-1">
                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Cartão / Conta</label>
-                   <select id="edit-trans-card" class="w-full p-4 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-bold text-xs text-white">
+                   <select id="edit-trans-card" class="w-full p-4 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-bold text-xs text-white uppercase">
                    </select>
                  </div>
               </div>
@@ -1015,11 +1015,11 @@
 
     function updateCardSelect() {
       const select = document.getElementById('transaction-card');
-      select.innerHTML = '<option value="">Sem Cartão / Opcional</option>';
+      select.innerHTML = '<option value="">SEM CARTÃO / OPCIONAL</option>';
       state.customCards.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.name;
-        opt.textContent = c.name;
+        opt.textContent = c.name.toUpperCase();
         if (c.name === "Cartão de Crédito") {
           opt.selected = true;
         }
@@ -1215,11 +1215,11 @@
         if (type === 'expense') {
           expenseOpts.classList.remove('hidden');
           const cardSelect = document.getElementById('edit-trans-card');
-          cardSelect.innerHTML = '<option value="">Sem Cartão / Opcional</option>';
+          cardSelect.innerHTML = '<option value="">SEM CARTÃO / OPCIONAL</option>';
           state.customCards.forEach(c => {
             const opt = document.createElement('option');
             opt.value = c.name;
-            opt.textContent = c.name;
+            opt.textContent = c.name.toUpperCase();
             if (c.name === card) opt.selected = true;
             cardSelect.appendChild(opt);
           });
@@ -1951,9 +1951,3 @@
   </script>
 </body>
 </html>
-```
-eof
-
-### Resumo das edições feitas:
-* **Cartão de Crédito Selecionado por Padrão:** O menu seletor de conta pré-marca automaticamente o `"Cartão de Crédito"` logo ao carregar a página de despesa ou ao limpar o formulário pós-lançamento.
-* **Flexibilidade Mantida:** Caso pretenda alterar a conta/cartão associada, o utilizador pode simplesmente clicar no seletor para trocar ou remover a opção sem qualquer impedimento.
