@@ -496,8 +496,8 @@
               <i data-lucide="x" class="w-5 h-5"></i>
            </button>
         </div>
-        <!-- Gráfico de barras das categorias para esse meio de pagamento -->
-        <div id="payment-details-chart" class="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+        <!-- Gráfico de quadrinhos das categorias para esse meio de pagamento -->
+        <div id="payment-details-chart" class="max-h-[300px] overflow-y-auto pr-1">
         </div>
      </div>
   </div>
@@ -511,8 +511,8 @@
               <i data-lucide="x" class="w-5 h-5"></i>
            </button>
         </div>
-        <!-- Gráfico de barras das formas de pagamento para esta categoria -->
-        <div id="category-details-chart" class="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+        <!-- Gráfico de quadrinhos das formas de pagamento para esta categoria -->
+        <div id="category-details-chart" class="max-h-[300px] overflow-y-auto pr-1">
         </div>
      </div>
   </div>
@@ -572,6 +572,60 @@
         return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
       }
       return 'bg-slate-500/10 text-slate-400 border border-slate-500/20';
+    }
+
+    // Retorna ícones e cores premium correspondentes para os quadrinhos das formas de pagamento
+    function getMethodIconAndStyle(method) {
+      let icon = 'credit-card';
+      let iconColor = 'text-purple-400 bg-purple-500/10';
+      const m = method.toLowerCase();
+      if (m.includes('pix')) {
+        icon = 'smartphone';
+        iconColor = 'text-emerald-400 bg-emerald-500/10';
+      } else if (m.includes('débito') || m.includes('debito')) {
+        icon = 'credit-card';
+        iconColor = 'text-blue-400 bg-blue-500/10';
+      } else if (m.includes('crédito') || m.includes('credito')) {
+        icon = 'credit-card';
+        iconColor = 'text-purple-400 bg-purple-500/10';
+      } else if (m.includes('dinheiro')) {
+        icon = 'banknote';
+        iconColor = 'text-amber-400 bg-amber-500/10';
+      } else if (m.includes('entrada') || m.includes('receita') || m.includes('income')) {
+        icon = 'trending-up';
+        iconColor = 'text-emerald-400 bg-emerald-500/10';
+      }
+      return { icon, iconColor };
+    }
+
+    // Retorna ícones e cores inteligentes para os quadrinhos de categoria
+    function getCategoryIconAndStyle(catName) {
+      let icon = 'tag';
+      let iconColor = 'text-slate-400 bg-slate-500/10';
+      const name = catName.toLowerCase();
+      if (name.includes('alimentação') || name.includes('alimentacao') || name.includes('mercado') || name.includes('comida') || name.includes('almoço') || name.includes('almoco')) {
+        icon = 'utensils';
+        iconColor = 'text-rose-400 bg-rose-500/10';
+      } else if (name.includes('moradia') || name.includes('casa') || name.includes('aluguel') || name.includes('condomínio') || name.includes('condominio')) {
+        icon = 'home';
+        iconColor = 'text-blue-400 bg-blue-500/10';
+      } else if (name.includes('transporte') || name.includes('carro') || name.includes('combustível') || name.includes('combustivel') || name.includes('viagem')) {
+        icon = 'car';
+        iconColor = 'text-amber-400 bg-amber-500/10';
+      } else if (name.includes('lazer') || name.includes('cinema') || name.includes('diversão') || name.includes('diversao') || name.includes('festa')) {
+        icon = 'sparkles';
+        iconColor = 'text-purple-400 bg-purple-500/10';
+      } else if (name.includes('porto seguro') || name.includes('seguro') || name.includes('porto')) {
+        icon = 'shield';
+        iconColor = 'text-indigo-400 bg-indigo-500/10';
+      } else if (name.includes('salário') || name.includes('salario') || name.includes('receita') || name.includes('pagamento')) {
+        icon = 'dollar-sign';
+        iconColor = 'text-emerald-400 bg-emerald-500/10';
+      } else if (name.includes('investimentos') || name.includes('investimento') || name.includes('poupança') || name.includes('poupanca')) {
+        icon = 'trending-up';
+        iconColor = 'text-teal-400 bg-teal-500/10';
+      }
+      return { icon, iconColor };
     }
 
     // Função de Toast personalizada sem alertas do browser
@@ -760,7 +814,7 @@
         if (draft.card && optionExists(cardSelect, draft.card)) {
           cardSelect.value = draft.card;
         } else {
-          cardSelect.value = draft.card;
+          cardSelect.value = cardSelect.value;
         }
 
         const methodSelect = document.getElementById('transaction-method');
@@ -1302,7 +1356,7 @@
       }
     }
 
-    // Modal com dados consolidados por forma de pagamento (Visual Idêntico de Categorias)
+    // Modal com dados consolidados por forma de pagamento (Visual de Quadrinhos)
     function showPaymentDetailsModal(method, categories) {
       document.getElementById('payment-details-title').textContent = `Gastos: ${method}`;
       const container = document.getElementById('payment-details-chart');
@@ -1316,27 +1370,25 @@
       if (sortedCats.length === 0) {
          container.innerHTML = `<p class="text-center text-slate-500 text-xs py-10 uppercase">Sem gastos registrados</p>`;
       } else {
-         const maxAmount = Math.max(...sortedCats.map(c => c.amount), 1);
-         let html = '';
+         let html = `
+           <div class="grid grid-cols-2 gap-3">
+         `;
          sortedCats.forEach(cat => {
-            const percentage = Math.round((cat.amount / maxAmount) * 100);
-            const barColor = 'bg-rose-500'; // Saídas
+            const { icon, iconColor } = getCategoryIconAndStyle(cat.name);
             
             html += `
-              <div class="space-y-1.5 animate-in fade-in duration-300">
-                <div class="flex justify-between items-center text-xs">
-                  <span class="font-extrabold text-slate-200 flex items-center gap-1.5 uppercase tracking-wide text-[10px]">
-                    <span class="w-2 h-2 rounded-full ${barColor}"></span>
-                    ${cat.name}
-                  </span>
-                  <span class="font-black text-slate-100">${formatCurrency(cat.amount)}</span>
+              <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-850 flex items-center gap-2.5 animate-in fade-in duration-300">
+                <div class="p-2 rounded-xl ${iconColor} shrink-0">
+                  <i data-lucide="${icon}" class="w-4 h-4"></i>
                 </div>
-                <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-850">
-                  <div class="h-full rounded-full ${barColor} transition-all duration-500" style="width: ${percentage}%"></div>
+                <div class="min-w-0">
+                  <p class="text-[8px] font-bold text-slate-500 uppercase tracking-wider truncate">${cat.name}</p>
+                  <p class="font-black text-xs text-slate-100 mt-0.5 truncate">${formatCurrency(cat.amount)}</p>
                 </div>
               </div>
             `;
          });
+         html += `</div>`;
          container.innerHTML = html;
       }
 
@@ -1346,7 +1398,7 @@
       }
     }
 
-    // Modal com dados detalhados dos métodos de pagamento para a categoria clicada
+    // Modal com dados detalhados dos métodos de pagamento para a categoria clicada (Visual de Grelha / Quadrinhos)
     function showCategoryDetailsModal(categoryName, categoryType, monthData) {
       document.getElementById('category-details-title').textContent = `${categoryName}`;
       const container = document.getElementById('category-details-chart');
@@ -1374,27 +1426,25 @@
       if (sortedMethods.length === 0) {
         container.innerHTML = `<p class="text-center text-slate-500 text-xs py-10 uppercase">Sem dados registados</p>`;
       } else {
-        const maxAmount = Math.max(...sortedMethods.map(m => m.amount), 1);
-        let html = '';
+        let html = `
+          <div class="grid grid-cols-2 gap-3">
+        `;
         sortedMethods.forEach(method => {
-          const percentage = Math.round((method.amount / maxAmount) * 100);
-          const barColor = categoryType === 'income' ? 'bg-emerald-500' : 'bg-rose-500';
+          const { icon, iconColor } = getMethodIconAndStyle(method.name);
 
           html += `
-            <div class="space-y-1.5 animate-in fade-in duration-300">
-              <div class="flex justify-between items-center text-xs">
-                <span class="font-extrabold text-slate-200 flex items-center gap-1.5 uppercase tracking-wide text-[10px]">
-                  <span class="w-2 h-2 rounded-full ${barColor}"></span>
-                  ${method.name}
-                </span>
-                <span class="font-black text-slate-100">${formatCurrency(method.amount)}</span>
+            <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-850 flex items-center gap-2.5 animate-in fade-in duration-300">
+              <div class="p-2 rounded-xl ${iconColor} shrink-0">
+                <i data-lucide="${icon}" class="w-4 h-4"></i>
               </div>
-              <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-850">
-                <div class="h-full rounded-full ${barColor} transition-all duration-500" style="width: ${percentage}%"></div>
+              <div class="min-w-0">
+                <p class="text-[8px] font-bold text-slate-500 uppercase tracking-wider truncate">${method.name}</p>
+                <p class="font-black text-xs text-slate-100 mt-0.5 truncate">${formatCurrency(method.amount)}</p>
               </div>
             </div>
           `;
         });
+        html += `</div>`;
         container.innerHTML = html;
       }
 
@@ -1797,4 +1847,4 @@
     };
   </script>
 </body>
-  </html>
+</html>
