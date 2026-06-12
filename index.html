@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-PT" class="dark">
 <head>
@@ -29,19 +30,62 @@
       scrollbar-width: none;
     }
     /* Estilo premium para as barras de rolagem dos modais */
-    #history-list::-webkit-scrollbar, #categories-popup-list::-webkit-scrollbar, #cards-popup-list::-webkit-scrollbar, #payment-details-chart::-webkit-scrollbar, #category-details-chart::-webkit-scrollbar {
+    #history-list::-webkit-scrollbar, 
+    #categories-popup-list::-webkit-scrollbar, 
+    #cards-popup-list::-webkit-scrollbar, 
+    #payment-details-chart::-webkit-scrollbar, 
+    #category-details-chart::-webkit-scrollbar {
       width: 5px;
     }
-    #history-list::-webkit-scrollbar-track, #categories-popup-list::-webkit-scrollbar-track, #cards-popup-list::-webkit-scrollbar-track, #payment-details-chart::-webkit-scrollbar-track, #category-details-chart::-webkit-scrollbar-track {
+    #history-list::-webkit-scrollbar-track, 
+    #categories-popup-list::-webkit-scrollbar-track, 
+    #cards-popup-list::-webkit-scrollbar-track, 
+    #payment-details-chart::-webkit-scrollbar-track, 
+    #category-details-chart::-webkit-scrollbar-track {
       background: transparent;
     }
-    #history-list::-webkit-scrollbar-thumb, #categories-popup-list::-webkit-scrollbar-thumb, #cards-popup-list::-webkit-scrollbar-thumb, #payment-details-chart::-webkit-scrollbar-thumb, #category-details-chart::-webkit-scrollbar-thumb {
+    #history-list::-webkit-scrollbar-thumb, 
+    #categories-popup-list::-webkit-scrollbar-thumb, 
+    #cards-popup-list::-webkit-scrollbar-thumb, 
+    #payment-details-chart::-webkit-scrollbar-thumb, 
+    #category-details-chart::-webkit-scrollbar-thumb {
       background: #334155;
       border-radius: 9999px;
     }
-    #history-list::-webkit-scrollbar-thumb:hover, #categories-popup-list::-webkit-scrollbar-thumb:hover, #cards-popup-list::-webkit-scrollbar-thumb:hover, #payment-details-chart::-webkit-scrollbar-thumb:hover, #category-details-chart::-webkit-scrollbar-thumb:hover {
+    #history-list::-webkit-scrollbar-thumb:hover, 
+    #categories-popup-list::-webkit-scrollbar-thumb:hover, 
+    #cards-popup-list::-webkit-scrollbar-thumb:hover, 
+    #payment-details-chart::-webkit-scrollbar-thumb:hover, 
+    #category-details-chart::-webkit-scrollbar-thumb:hover {
       background: #475569;
     }
+
+    /* SALVAGUARDA DE CSS: Garante que caixas de texto/seletores fiquem escuras em qualquer telemóvel/navegador */
+    #form-edit-transaction input, 
+    #form-edit-transaction select,
+    #form-add-category input,
+    #form-add-category select,
+    #form-add-card input,
+    #edit-category-modal input,
+    #edit-category-modal select,
+    #edit-card-modal input {
+      background-color: #020617 !important; /* bg-slate-950 */
+      color: #f8fafc !important; /* text-slate-50 */
+      border-color: #1e293b !important; /* border-slate-800 */
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+
+    /* Estilização específica para as setas de seleção nativas */
+    #form-edit-transaction select {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1.2em;
+      padding-right: 2.5rem;
+    }
+
     @media print {
       body * {
         visibility: hidden;
@@ -68,7 +112,7 @@
     }
   </style>
 </head>
-<body class="bg-black text-slate-100 overflow-hidden">
+<body class="bg-black text-slate-100 overflow-hidden select-none">
 
   <!-- TELA DE APRESENTAÇÃO (SPLASH SCREEN) -->
   <div id="splash-screen" class="fixed inset-0 bg-slate-950 z-[300] flex flex-col items-center justify-center transition-all duration-700 ease-in-out">
@@ -98,6 +142,21 @@
       <i data-lucide="info" class="w-5 h-5"></i>
     </div>
     <span id="toast-text" class="text-xs font-bold uppercase tracking-wider"></span>
+  </div>
+
+  <!-- MODAL DE CONFIRMAÇÃO UNIFICADO (PREMIUM) -->
+  <div id="confirm-modal" class="hidden fixed inset-0 z-[250] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
+     <div class="bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 text-center animate-in zoom-in duration-200">
+        <div class="w-16 h-16 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
+           <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-white font-black uppercase text-xs tracking-widest mb-2" id="confirm-modal-title">Confirmar Ação</h3>
+        <p class="text-xs text-slate-400 font-bold mb-6" id="confirm-modal-message">Tem a certeza de que deseja realizar esta ação?</p>
+        <div class="grid grid-cols-2 gap-3">
+           <button type="button" id="btn-confirm-cancel" class="py-4 bg-slate-800 text-slate-400 rounded-2xl font-black text-[10px] uppercase border border-slate-700 active:scale-95 transition-all">Cancelar</button>
+           <button type="button" id="btn-confirm-execute" class="py-4 bg-rose-600 text-white rounded-2xl font-black text-[10px] uppercase shadow-lg shadow-rose-900/40 active:scale-95 transition-all">Eliminar</button>
+        </div>
+     </div>
   </div>
 
   <!-- MAIN APP SCREEN (Painel Principal) -->
@@ -204,7 +263,7 @@
                    <select id="transaction-card" class="w-full bg-slate-900 border border-slate-800 p-3 rounded-2xl outline-none font-bold text-xs text-slate-200 uppercase">
                    </select>
                 </div>
-               
+                
                <div class="grid grid-cols-2 gap-3 items-center">
                  <span class="text-[9px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">COMPRA EM PRESTAÇÕES?</span>
                  <div class="flex gap-2">
@@ -212,6 +271,16 @@
                    <button type="button" id="btn-installment-yes" class="flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent">SIM</button>
                    <input type="number" id="transaction-installments" min="2" max="120" value="2" class="hidden w-16 p-1.5 bg-slate-800 text-center rounded-xl font-bold border border-slate-700 text-white text-xs" />
                  </div>
+               </div>
+
+               <!-- Simulação ao vivo das parcelas -->
+               <div id="installment-simulation" class="hidden p-3 bg-slate-950 rounded-2xl border border-slate-800 space-y-1.5">
+                  <div class="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                     <span>Simulação de Prestações</span>
+                     <span id="simulation-summary">-- parcelas de --</span>
+                  </div>
+                  <div id="simulation-list" class="max-h-[85px] overflow-y-auto pr-1 space-y-1 scrollbar-hide text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                  </div>
                </div>
              </div>
           </div>
@@ -233,7 +302,6 @@
 
       <!-- Relatório -->
       <section id="tab-report" class="tab-content hidden space-y-6">
-         <!-- O seletor de meses sobe diretamente para o topo, otimizando o ecrã conforme Screenshot_20260611_230312_Chrome(1).jpg -->
          <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide" id="report-months-scroll">
          </div>
          
@@ -325,7 +393,7 @@
       </div>
 
       <!-- Seletor de Sub-abas dentro do Popup -->
-      <div class="flex gap-1 p-1 bg-slate-950 rounded-xl border border-slate-850 mb-4 shrink-0">
+      <div class="flex gap-1 p-1 bg-slate-950 rounded-xl border border-slate-800 mb-4 shrink-0">
         <button id="modal-tab-categories" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase transition-all bg-blue-600 text-white font-bold flex items-center justify-center gap-1.5">
           <i data-lucide="tag" class="w-3.5 h-3.5"></i> Categorias
         </button>
@@ -337,15 +405,15 @@
       <!-- Seção Dinâmica de Gerenciamento de Categorias -->
       <div id="modal-categories-section" class="flex-1 flex flex-col min-h-0 space-y-4">
         <!-- Formulário com Caixa Ultra Escura -->
-        <form id="form-add-category" class="p-4 bg-slate-950 rounded-2xl border border-slate-850 space-y-3 shrink-0">
+        <form id="form-add-category" class="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3 shrink-0">
           <div class="space-y-1">
             <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-bold">Nova Categoria</label>
-            <input type="text" id="new-category-name" placeholder="Nome da Categoria (Mercado, Almoço, Bónus...)" class="w-full bg-slate-950 border border-slate-850 p-3.5 rounded-xl outline-none font-bold text-sm text-white focus:border-blue-500" required />
+            <input type="text" id="new-category-name" placeholder="Nome da Categoria (Mercado, Almoço, Bónus...)" class="w-full bg-slate-950 border border-slate-800 p-3.5 rounded-xl outline-none font-bold text-sm text-white focus:border-blue-500" required />
           </div>
           <div class="flex gap-2">
             <div class="flex-1 space-y-1">
               <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-bold">Tipo de Fluxo</label>
-              <select id="new-category-type" class="w-full bg-slate-950 border border-slate-850 p-3 rounded-xl outline-none font-black text-[10px] uppercase text-slate-200 cursor-pointer">
+              <select id="new-category-type" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl outline-none font-black text-[10px] uppercase text-slate-200 cursor-pointer">
                 <option value="expense">Despesa</option>
                 <option value="income">Receita</option>
               </select>
@@ -364,15 +432,15 @@
       <!-- Seção Dinâmica de Gerenciamento de Contas e Cartões -->
       <div id="modal-cards-section" class="hidden flex-1 flex flex-col min-h-0 space-y-4">
         <!-- Formulário com Caixa Ultra Escura -->
-        <form id="form-add-card" class="p-4 bg-slate-950 rounded-2xl border border-slate-850 space-y-3 shrink-0">
+        <form id="form-add-card" class="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3 shrink-0">
           <div class="space-y-1">
             <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-bold">Banco ou Nome do Cartão</label>
-            <input type="text" id="new-card-name" placeholder="Ex: Nubank, Caixa..." class="w-full bg-slate-950 border border-slate-850 p-3.5 rounded-xl outline-none font-bold text-sm text-white focus:border-blue-500" required />
+            <input type="text" id="new-card-name" placeholder="Ex: Nubank, Caixa..." class="w-full bg-slate-950 border border-slate-800 p-3.5 rounded-xl outline-none font-bold text-sm text-white focus:border-blue-500" required />
           </div>
           <div class="flex gap-2">
             <div class="flex-1 space-y-1">
               <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-bold">Detalhes da CC (Opcional)</label>
-              <input type="text" id="new-card-details" placeholder="Ex: CC 1234-5" class="w-full bg-slate-950 border border-slate-850 p-3.5 rounded-xl outline-none font-bold text-xs text-white focus:border-blue-500" />
+              <input type="text" id="new-card-details" placeholder="Ex: CC 1234-5" class="w-full bg-slate-950 border border-slate-800 p-3.5 rounded-xl outline-none font-bold text-xs text-white focus:border-blue-500" />
             </div>
             <button type="submit" class="self-end p-3.5 bg-purple-600 hover:bg-purple-500 active:scale-95 transition-all text-white rounded-xl font-bold flex items-center justify-center gap-1 shadow-lg shadow-purple-900/20">
               <i data-lucide="plus" class="w-5 h-5"></i>
@@ -389,10 +457,10 @@
       <div class="border-t border-slate-800 pt-4 mt-4 flex justify-between items-center shrink-0">
         <span class="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Backup de dados:</span>
         <div class="flex gap-1.5">
-          <button id="btn-export-backup" class="px-3 py-2 bg-slate-850 hover:bg-slate-800 active:scale-95 text-slate-200 rounded-lg font-black text-[9px] uppercase border border-slate-750 transition-all flex items-center gap-1 font-bold">
+          <button id="btn-export-backup" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 active:scale-95 text-slate-200 rounded-lg font-black text-[9px] uppercase border border-slate-700 transition-all flex items-center gap-1 font-bold">
             <i data-lucide="download" class="w-3 h-3"></i> Exportar
           </button>
-          <label for="import-backup-file" class="px-3 py-2 bg-blue-650 hover:bg-blue-600 active:scale-95 text-white rounded-lg font-black text-[9px] uppercase shadow-md shadow-blue-900/20 transition-all flex items-center gap-1 cursor-pointer font-bold">
+          <label for="import-backup-file" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-lg font-black text-[9px] uppercase shadow-md shadow-blue-900/20 transition-all flex items-center gap-1 cursor-pointer font-bold">
             <i data-lucide="upload" class="w-3 h-3"></i> Importar
           </label>
           <input type="file" id="import-backup-file" class="hidden" accept=".json" />
@@ -410,11 +478,11 @@
            <input type="hidden" id="edit-category-id" />
            <div class="space-y-1 text-left">
              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Nome da Categoria</label>
-             <input type="text" id="edit-category-name" class="w-full p-4 bg-slate-950 border border-slate-850 rounded-2xl outline-none font-bold text-sm text-white focus:border-blue-500 text-center" required />
+             <input type="text" id="edit-category-name" class="w-full p-4 bg-slate-950 border border-slate-800 rounded-2xl outline-none font-bold text-sm text-white focus:border-blue-500 text-center" required />
            </div>
            <div class="space-y-1 text-left">
              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Tipo de Fluxo</label>
-             <select id="edit-category-type" class="w-full p-4 bg-slate-950 border border-slate-850 rounded-2xl outline-none font-black text-xs uppercase text-white text-center">
+             <select id="edit-category-type" class="w-full p-4 bg-slate-950 border border-slate-800 rounded-2xl outline-none font-black text-xs uppercase text-white text-center">
                 <option value="expense">Despesa</option>
                 <option value="income">Receita</option>
              </select>
@@ -435,7 +503,7 @@
            <input type="hidden" id="edit-card-id" />
            <div class="space-y-1 text-left">
              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Nome do Banco / Cartão</label>
-             <input type="text" id="edit-card-name" class="w-full p-4 bg-slate-950 border border-slate-850 rounded-2xl outline-none font-bold text-sm text-white focus:border-blue-500 text-center" required />
+             <input type="text" id="edit-card-name" class="w-full p-4 bg-slate-950 border border-slate-800 rounded-2xl outline-none font-bold text-sm text-white focus:border-blue-500 text-center" required />
            </div>
            <div class="grid grid-cols-2 gap-2 pt-4">
               <button type="button" id="btn-close-edit-card" class="py-4 bg-slate-800 text-slate-400 rounded-2xl font-black text-[10px] uppercase border border-slate-700 font-bold">Cancelar</button>
@@ -445,7 +513,7 @@
      </div>
   </div>
 
-  <!-- MODAL DE EDIÇÃO DE LANÇAMENTO -->
+  <!-- MODAL DE EDIÇÃO DE LANÇAMENTO (DISPOSIÇÃO ADAPTADA E PREMIUM) -->
   <div id="edit-transaction-modal" class="hidden fixed inset-0 z-[170] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 overflow-y-auto">
      <div class="bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 text-center animate-in zoom-in duration-200 my-auto">
         <h2 class="font-black text-white uppercase text-xs tracking-widest mb-6 font-bold">Editar Lançamento</h2>
@@ -455,57 +523,58 @@
            
            <div class="space-y-1">
              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Valor</label>
-             <input type="text" id="edit-trans-amount" inputmode="numeric" placeholder="R$ 0,00" class="w-full p-4 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-black text-lg text-white text-center focus:border-blue-500" required />
+             <input type="text" id="edit-trans-amount" inputmode="numeric" placeholder="R$ 0,00" class="w-full p-4 bg-slate-950 border border-slate-800 rounded-2xl outline-none font-black text-lg text-white text-center focus:border-blue-500" required />
            </div>
 
            <div class="space-y-1">
              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Descrição</label>
-             <input type="text" id="edit-trans-desc" class="w-full p-4 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-bold text-sm text-white focus:border-blue-500" required />
+             <input type="text" id="edit-trans-desc" class="w-full p-4 bg-slate-950 border border-slate-800 rounded-2xl outline-none font-bold text-sm text-white focus:border-blue-500" required />
            </div>
 
            <div class="grid grid-cols-2 gap-2">
               <div class="space-y-1">
                 <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Categoria</label>
-                <select id="edit-trans-category" class="w-full p-4 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-bold text-xs text-white uppercase">
+                <select id="edit-trans-category" class="w-full p-4 bg-slate-950 border border-slate-800 rounded-2xl outline-none font-bold text-xs text-white uppercase">
                 </select>
               </div>
               <div class="space-y-1">
                 <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Data</label>
-                <input type="date" id="edit-trans-date" class="w-full p-3.5 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-bold text-xs text-white" required />
+                <input type="date" id="edit-trans-date" class="w-full p-3.5 bg-slate-950 border border-slate-800 rounded-2xl outline-none font-bold text-xs text-white" required />
               </div>
            </div>
 
-           <div class="space-y-1">
-             <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Mês Ref.</label>
-             <select id="edit-trans-month" class="w-full p-4 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-bold text-xs text-white">
-             </select>
+           <!-- MÊS DE REF E FORMA DE PAGAMENTO LADO A LADO -->
+           <div class="grid grid-cols-2 gap-2" id="edit-trans-month-method-row">
+              <div id="edit-trans-month-container" class="col-span-2 space-y-1">
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Mês Ref.</label>
+                <select id="edit-trans-month" class="w-full p-4 bg-slate-950 border border-slate-800 rounded-2xl outline-none font-bold text-xs text-white">
+                </select>
+              </div>
+              <div id="edit-trans-method-container" class="hidden space-y-1">
+                 <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Forma Pag.</label>
+                 <select id="edit-trans-method" class="w-full p-4 bg-slate-950 border border-slate-800 rounded-2xl outline-none font-bold text-xs text-white uppercase">
+                    <option value="Pix">Pix</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Débito">Débito</option>
+                    <option value="Crédito">Crédito</option>
+                 </select>
+              </div>
            </div>
 
-           <!-- Campos de Parcelas e Pagamento Exclusivos de Despesa -->
+           <!-- Campos Adicionais Exclusivos de Despesa -->
            <div id="edit-trans-expense-options" class="space-y-4 hidden">
-              <div class="grid grid-cols-2 gap-2">
-                 <div class="space-y-1">
-                   <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Forma Pag.</label>
-                   <select id="edit-trans-method" class="w-full p-4 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-bold text-xs text-white uppercase">
-                      <option value="Pix">Pix</option>
-                      <option value="Dinheiro">Dinheiro</option>
-                      <option value="Débito">Débito</option>
-                      <option value="Crédito">Crédito</option>
-                   </select>
-                 </div>
-                 <div class="space-y-1">
-                   <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Cartão / Conta</label>
-                   <select id="edit-trans-card" class="w-full p-4 bg-slate-850 border border-slate-750 rounded-2xl outline-none font-bold text-xs text-white uppercase">
-                   </select>
-                 </div>
+              <div class="space-y-1">
+                 <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 font-bold">Cartão / Conta (Opcional)</label>
+                 <select id="edit-trans-card" class="w-full p-4 bg-slate-950 border border-slate-800 rounded-2xl outline-none font-bold text-xs text-white uppercase">
+                 </select>
               </div>
 
               <div class="grid grid-cols-2 gap-2 items-center">
                 <span class="text-[9px] font-black text-slate-400 uppercase ml-2 tracking-widest font-bold">PARCELADO?</span>
                 <div class="flex gap-2">
-                  <button type="button" id="btn-edit-installment-no" class="flex-1 py-2 bg-slate-850 text-white rounded-xl text-xs font-bold border border-slate-750">NÃO</button>
-                  <button type="button" id="btn-edit-installment-yes" class="flex-1 py-2 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent">SIM</button>
-                  <input type="number" id="edit-trans-installments" min="2" max="120" class="hidden w-16 p-2 bg-slate-850 text-center rounded-xl font-bold border border-slate-750 text-white text-xs" />
+                  <button type="button" id="btn-edit-installment-no" class="flex-1 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold border border-slate-800">NÃO</button>
+                  <button type="button" id="btn-edit-installment-yes" class="flex-1 py-2 bg-slate-950 text-slate-500 rounded-xl text-xs font-bold border border-transparent">SIM</button>
+                  <input type="number" id="edit-trans-installments" min="2" max="120" class="hidden w-16 p-2 bg-slate-950 text-center rounded-xl font-bold border border-slate-800 text-white text-xs" />
                 </div>
               </div>
            </div>
@@ -522,12 +591,11 @@
   <div id="payment-details-modal" class="hidden fixed inset-0 z-[170] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6">
      <div class="bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 animate-in zoom-in duration-200">
         <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
-           <h2 id="payment-details-title" class="font-black text-white uppercase text-xs tracking-widest font-bold">Gastos com PIX</h2>
+           <h2 id="payment-details-title" class="font-black text-white uppercase text-xs tracking-widest font-bold">Gastos</h2>
            <button id="btn-close-payment-details" class="text-slate-400 hover:text-white transition-colors">
               <i data-lucide="x" class="w-5 h-5"></i>
            </button>
         </div>
-        <!-- Gráfico de quadrinhos das categorias para esse meio de pagamento -->
         <div id="payment-details-chart" class="max-h-[300px] overflow-y-auto pr-1">
         </div>
      </div>
@@ -537,12 +605,11 @@
   <div id="category-details-modal" class="hidden fixed inset-0 z-[170] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6">
      <div class="bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl border border-slate-800 animate-in zoom-in duration-200">
         <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
-           <h2 id="category-details-title" class="font-black text-white uppercase text-xs tracking-widest font-bold">Detalhamento de Categoria</h2>
+           <h2 id="category-details-title" class="font-black text-white uppercase text-xs tracking-widest font-bold">Detalhamento</h2>
            <button id="btn-close-category-details" class="text-slate-400 hover:text-white transition-colors">
               <i data-lucide="x" class="w-5 h-5"></i>
            </button>
         </div>
-        <!-- Gráfico de quadrinhos das formas de pagamento para esta categoria -->
         <div id="category-details-chart" class="max-h-[300px] overflow-y-auto pr-1">
         </div>
      </div>
@@ -550,15 +617,6 @@
 
   <!-- Lógica da Base de Dados Local (LocalStorage) -->
   <script>
-    // Lista de meses de referência
-    const BILLING_MONTHS_LIST = Array.from({ length: 12 }, (_, i) => {
-      const date = new Date();
-      date.setDate(1);
-      date.setMonth(date.getMonth() + i - 3); 
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      return `${month}/${date.getFullYear()}`;
-    });
-
     // Chave fixa local única
     const LOCAL_KEY = 'samuel';
 
@@ -568,44 +626,85 @@
       customCategories: [],
       customCards: [],
       activeTab: 'expense',
-      fidSubTab: 'categories', // 'categories' ou 'cards'
+      fidSubTab: 'categories', 
       selectedHistoryMonth: `${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${new Date().getFullYear()}`,
       isInstallment: false,
-      
       drafts: {
-        expense: { amount: '', desc: '', category: '', month: `${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${new Date().getFullYear()}`, card: 'Cartão de Crédito', isInstallment: false, installments: 2, date: new Date().toISOString().split('T')[0], paymentMethod: 'Pix' },
-        income: { amount: '', desc: '', category: '', month: `${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${new Date().getFullYear()}`, date: new Date().toISOString().split('T')[0] }
+        expense: { amount: '', desc: '', category: '', month: '', card: 'Cartão de Crédito', isInstallment: false, installments: 2, date: new Date().toISOString().split('T')[0], paymentMethod: 'Pix' },
+        income: { amount: '', desc: '', category: '', month: '', date: new Date().toISOString().split('T')[0] }
       }
     };
 
     let editIsInstallment = false;
+    let confirmModalAction = null;
 
-    // Formatação de moedas
+    // Geração dinâmica de meses de faturamento
+    function getBillingMonthsList() {
+      const monthsSet = new Set();
+      for (let i = -6; i <= 6; i++) {
+        const d = new Date();
+        d.setDate(1);
+        d.setMonth(d.getMonth() + i);
+        const m = (d.getMonth() + 1).toString().padStart(2, '0');
+        monthsSet.add(`${m}/${d.getFullYear()}`);
+      }
+
+      state.transactions.forEach(t => {
+        if (t.billingMonth) monthsSet.add(t.billingMonth);
+        if (t.isInstallment && t.installmentsCount > 1) {
+          const parts = t.billingMonth.split('/');
+          if (parts.length === 2) {
+            let [m, y] = parts.map(Number);
+            for (let i = 0; i < t.installmentsCount; i++) {
+              let d = new Date(y, m - 1 + i, 1);
+              monthsSet.add(`${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`);
+            }
+          }
+        }
+      });
+
+      return Array.from(monthsSet).sort((a, b) => {
+        const [mA, yA] = a.split('/').map(Number);
+        const [mB, yB] = b.split('/').map(Number);
+        return yA !== yB ? yA - yB : mA - mB;
+      });
+    }
+
+    // Modal de confirmação customizado
+    function showConfirmModal(title, message, onConfirm) {
+       const modal = document.getElementById('confirm-modal');
+       document.getElementById('confirm-modal-title').textContent = title;
+       document.getElementById('confirm-modal-message').textContent = message;
+       modal.classList.remove('hidden');
+       confirmModalAction = () => {
+          onConfirm();
+          modal.classList.add('hidden');
+       };
+    }
+
+    document.getElementById('btn-confirm-cancel').onclick = () => {
+       document.getElementById('confirm-modal').classList.add('hidden');
+       confirmModalAction = null;
+    };
+    document.getElementById('btn-confirm-execute').onclick = () => {
+       if (confirmModalAction) confirmModalAction();
+    };
+
     function formatCurrency(value) {
       if (value === undefined || value === null || isNaN(value)) value = 0;
       return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
-    // Retorna cores diferenciadas para Pix, Dinheiro, Débito e Crédito
     function getPaymentMethodStyle(method) {
       if (!method) return '';
       const m = method.toLowerCase();
-      if (m.includes('pix')) {
-        return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-      }
-      if (m.includes('débito') || m.includes('debito')) {
-        return 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
-      }
-      if (m.includes('crédito') || m.includes('credito')) {
-        return 'bg-purple-500/10 text-purple-400 border border-purple-500/20';
-      }
-      if (m.includes('dinheiro')) {
-        return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
-      }
+      if (m.includes('pix')) return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+      if (m.includes('débito') || m.includes('debito')) return 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
+      if (m.includes('crédito') || m.includes('credito')) return 'bg-purple-500/10 text-purple-400 border border-purple-500/20';
+      if (m.includes('dinheiro')) return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
       return 'bg-slate-500/10 text-slate-400 border border-slate-500/20';
     }
 
-    // Retorna ícones e cores premium correspondentes para as formas de pagamento
     function getMethodIconAndStyle(method) {
       let icon = 'credit-card';
       let iconColor = 'text-purple-400 bg-purple-500/10';
@@ -629,7 +728,6 @@
       return { icon, iconColor };
     }
 
-    // Retorna ícones e cores inteligentes para os quadrinhos de categoria
     function getCategoryIconAndStyle(catName) {
       let icon = 'tag';
       let iconColor = 'text-slate-400 bg-slate-500/10';
@@ -659,7 +757,6 @@
       return { icon, iconColor };
     }
 
-    // Função de Toast personalizada sem alertas do browser
     function showToast(message, type = 'info') {
       const toast = document.getElementById('toast');
       const toastText = document.getElementById('toast-text');
@@ -673,7 +770,7 @@
         toast.className += ' bg-amber-950 border-amber-800 text-amber-200';
         iconName = 'alert-triangle';
       } else if (type === 'error') {
-        toast.className += ' bg-rose-950 border-rose-800 text-rose-200';
+        toast.className += ' bg-rose-955 border-rose-800 text-rose-200';
         iconName = 'x-circle';
       } else {
         toast.className += ' bg-emerald-950 border-emerald-800 text-emerald-200';
@@ -691,7 +788,6 @@
       setTimeout(() => toast.classList.add('hidden', '-translate-y-12', 'opacity-0'), 3000);
     }
 
-    // Criar e forçar dados padrão locais na primeira abertura
     function seedLocalData() {
       const catKey = `categories_${LOCAL_KEY}`;
       if (getLocalCollection(catKey).length === 0) {
@@ -720,7 +816,6 @@
       }
     }
 
-    // Adaptador síncrono para o LocalStorage
     const DB = {
       addDoc(collectionName, data) {
         const localData = getLocalCollection(collectionName);
@@ -757,14 +852,19 @@
       return data ? JSON.parse(data) : [];
     }
 
-    // Inicialização da Aplicação
     function initApp() {
       seedLocalData();
 
-      // Carregar dados locais do Estado
       state.transactions = getLocalCollection(`transactions_${LOCAL_KEY}`);
       state.customCategories = getLocalCollection(`categories_${LOCAL_KEY}`);
       state.customCards = getLocalCollection(`cards_${LOCAL_KEY}`);
+
+      const savedDrafts = localStorage.getItem(`drafts_${LOCAL_KEY}`);
+      if (savedDrafts) {
+        try {
+          state.drafts = JSON.parse(savedDrafts);
+        } catch (e) {}
+      }
 
       populateStaticSelects();
       renderAll();
@@ -773,7 +873,9 @@
     function populateStaticSelects() {
       const monthSelect = document.getElementById('transaction-month');
       monthSelect.innerHTML = '';
-      BILLING_MONTHS_LIST.forEach(m => {
+      
+      const list = getBillingMonthsList();
+      list.forEach(m => {
         const opt = document.createElement('option');
         opt.value = m;
         opt.textContent = m;
@@ -781,15 +883,13 @@
         monthSelect.appendChild(opt);
       });
 
-      // Definir data padrão de hoje no seletor de data
       const todayStr = new Date().toISOString().split('T')[0];
       document.getElementById('transaction-date').value = todayStr;
     }
 
-    // Atualiza o mês de faturamento inteligente quando o utilizador muda a data
     document.getElementById('transaction-date').addEventListener('change', (e) => {
       if (e.target.value) {
-        const parts = e.target.value.split('-'); // [YYYY, MM, DD]
+        const parts = e.target.value.split('-'); 
         if (parts.length === 3) {
           const billingRef = `${parts[1]}/${parts[0]}`;
           const select = document.getElementById('transaction-month');
@@ -818,6 +918,51 @@
         draft.isInstallment = state.isInstallment;
         draft.installments = parseInt(document.getElementById('transaction-installments').value) || 2;
       }
+
+      localStorage.setItem(`drafts_${LOCAL_KEY}`, JSON.stringify(state.drafts));
+      updateInstallmentSimulation();
+    }
+
+    function updateInstallmentSimulation() {
+       const simContainer = document.getElementById('installment-simulation');
+       const simList = document.getElementById('simulation-list');
+       
+       if (state.activeTab !== 'expense' || !state.isInstallment) {
+          simContainer.classList.add('hidden');
+          return;
+       }
+
+       const amountRaw = document.getElementById('transaction-amount').value.replace(/\D/g, "");
+       const num = parseFloat(amountRaw) / 100;
+       const installmentsCount = parseInt(document.getElementById('transaction-installments').value) || 2;
+       const startMonth = document.getElementById('transaction-month').value;
+
+       if (isNaN(num) || num <= 0 || !startMonth) {
+          simContainer.classList.add('hidden');
+          return;
+       }
+
+       simContainer.classList.remove('hidden');
+       document.getElementById('simulation-summary').textContent = `${installmentsCount}x de ${formatCurrency(num / installmentsCount)}`;
+       simList.innerHTML = '';
+
+       const parts = startMonth.split('/');
+       if (parts.length === 2) {
+          let [m, y] = parts.map(Number);
+          for (let i = 0; i < installmentsCount; i++) {
+             let d = new Date(y, m - 1 + i, 1);
+             const displayMonth = `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+             
+             const simItem = document.createElement('div');
+             simItem.className = "flex justify-between items-center py-1 border-b border-slate-900";
+             simItem.innerHTML = `
+                <span>Parcela ${i + 1}/${installmentsCount}</span>
+                <span class="text-slate-500 font-bold">${displayMonth}</span>
+                <span class="text-white font-black">${formatCurrency(num / installmentsCount)}</span>
+             `;
+             simList.appendChild(simItem);
+          }
+       }
     }
 
     function restoreActiveDraft() {
@@ -865,6 +1010,7 @@
           document.getElementById('btn-installment-yes').className = "flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent";
           document.getElementById('btn-installment-no').className = "flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
         }
+        updateInstallmentSimulation();
       }
     }
 
@@ -877,11 +1023,21 @@
       state.transactions.forEach(t => {
         if (t.isInstallment && t.installmentsCount > 1) {
           for (let i = 0; i < t.installmentsCount; i++) {
-            let [m, y] = t.billingMonth.split('/').map(Number);
-            let d = new Date(y, m - 1 + i, 1);
-            expanded.push({ ...t, displayMonth: `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`, displayAmount: t.amount / t.installmentsCount, installmentLabel: `${i + 1}/${t.installmentsCount}` });
+            const parts = t.billingMonth.split('/');
+            if (parts.length === 2) {
+              let [m, y] = parts.map(Number);
+              let d = new Date(y, m - 1 + i, 1);
+              expanded.push({ 
+                ...t, 
+                displayMonth: `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`, 
+                displayAmount: t.amount / t.installmentsCount, 
+                installmentLabel: `${i + 1}/${t.installmentsCount}` 
+              });
+            }
           }
-        } else { expanded.push({ ...t, displayMonth: t.billingMonth, displayAmount: t.amount, installmentLabel: null }); }
+        } else { 
+          expanded.push({ ...t, displayMonth: t.billingMonth, displayAmount: t.amount, installmentLabel: null }); 
+        }
       });
       return expanded;
     }
@@ -1081,11 +1237,13 @@
           date: new Date().toISOString().split('T')[0],
           ...(activeTab === 'expense' ? { card: 'Cartão de Crédito', isInstallment: false, installments: 2, paymentMethod: 'Pix' } : {})
         };
+        localStorage.setItem(`drafts_${LOCAL_KEY}`, JSON.stringify(state.drafts));
 
         document.getElementById('transaction-desc').value = '';
         document.getElementById('transaction-amount').value = '';
         state.isInstallment = false;
         document.getElementById('transaction-installments').classList.add('hidden');
+        document.getElementById('installment-simulation').classList.add('hidden');
         document.getElementById('btn-installment-yes').className = "flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent";
         document.getElementById('btn-installment-no').className = "flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
         showToast("Lançamento guardado!", "success");
@@ -1103,7 +1261,7 @@
       const balanceValue = document.getElementById('history-balance-value');
       balanceValue.textContent = formatCurrency(summary.balance);
       const balanceBox = document.getElementById('history-balance-box');
-      balanceBox.className = `p-6 rounded-[2rem] border text-center transition-all ${summary.balance >= 0 ? 'bg-emerald-950/20 border-emerald-900/30 text-emerald-400' : 'bg-rose-950/20 border-rose-900/30 text-rose-400'}`;
+      balanceBox.className = `p-6 rounded-[2rem] border text-center transition-all ${summary.balance >= 0 ? 'bg-emerald-950/20 border-emerald-900/30 text-emerald-400' : 'bg-rose-955/20 border-rose-900/30 text-rose-400'}`;
       if (list.length === 0) { container.innerHTML = `<p class="text-center py-10 text-[10px] font-black text-slate-700 uppercase italic">Nada lançado aqui</p>`; return; }
       
       list.forEach((t) => {
@@ -1111,7 +1269,6 @@
         item.className = "bg-slate-900/50 p-4 rounded-2xl border border-slate-800 flex items-center gap-4 animate-in slide-in-from-bottom-2 duration-300";
         const isIncome = t.type === 'income';
 
-        // Formatar data abreviada para exibição no item
         let formattedDate = '';
         if (t.date) {
           const dateParts = t.date.split('-');
@@ -1122,19 +1279,19 @@
         }
 
         item.innerHTML = `
-          <div class="p-3 rounded-xl ${isIncome ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}">
+          <div class="p-3 rounded-xl ${isIncome ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'} shrink-0">
             <i data-lucide="${isIncome ? 'trending-up' : 'trending-down'}" class="w-4 h-4"></i>
           </div>
           <div class="flex-1 min-w-0">
             <p class="font-bold text-sm uppercase truncate text-slate-100">${t.description}</p>
             <div class="flex flex-wrap items-center gap-1.5 mt-1">
               ${formattedDate ? `<span class="text-[10px] font-extrabold text-slate-400 mr-1">${formattedDate}</span>` : ''}
-              <span class="text-[9px] font-black text-slate-500 uppercase tracking-tighter bg-slate-800/40 px-1.5 py-0.5 rounded border border-slate-850">${t.category}</span>
+              <span class="text-[9px] font-black text-slate-500 uppercase tracking-tighter bg-slate-800/40 px-1.5 py-0.5 rounded border border-slate-800">${t.category}</span>
               ${t.installmentLabel ? `<span class="text-[9px] font-black text-blue-500 bg-blue-500/5 px-1.5 py-0.5 rounded border border-blue-500/10 uppercase">${t.installmentLabel}</span>` : ''}
               ${t.paymentMethod && !isIncome ? `<span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider uppercase ${getPaymentMethodStyle(t.paymentMethod)}">${t.paymentMethod}</span>` : ''}
             </div>
           </div>
-          <div class="flex flex-col items-end gap-1">
+          <div class="flex flex-col items-end gap-1 shrink-0">
             <p class="font-black text-sm whitespace-nowrap ${isIncome ? 'text-emerald-400' : 'text-slate-100'}">
               ${formatCurrency(t.displayAmount)}
             </p>
@@ -1163,9 +1320,11 @@
         container.appendChild(item);
       });
 
-      container.querySelectorAll('.delete-trans-btn').forEach(btn => btn.onclick = async () => { 
-        await DB.deleteDoc(`transactions_${LOCAL_KEY}`, btn.dataset.id); 
-        showToast("Lançamento eliminado!", "success"); 
+      container.querySelectorAll('.delete-trans-btn').forEach(btn => btn.onclick = () => { 
+         showConfirmModal("Eliminar Lançamento", "Tem a certeza de que deseja eliminar definitivamente este lançamento?", async () => {
+            await DB.deleteDoc(`transactions_${LOCAL_KEY}`, btn.dataset.id); 
+            showToast("Lançamento eliminado!", "success"); 
+         });
       });
 
       container.querySelectorAll('.edit-trans-btn').forEach(btn => btn.onclick = () => {
@@ -1203,7 +1362,7 @@
 
         const monthSelect = document.getElementById('edit-trans-month');
         monthSelect.innerHTML = '';
-        BILLING_MONTHS_LIST.forEach(m => {
+        getBillingMonthsList().forEach(m => {
           const opt = document.createElement('option');
           opt.value = m;
           opt.textContent = m;
@@ -1211,8 +1370,17 @@
           monthSelect.appendChild(opt);
         });
 
+        const monthContainer = document.getElementById('edit-trans-month-container');
+        const methodContainer = document.getElementById('edit-trans-method-container');
         const expenseOpts = document.getElementById('edit-trans-expense-options');
+
+        // AJUSTE DINÂMICO DOS CAMPOS DE ACORDO COM O TIPO
         if (type === 'expense') {
+          // Lado a lado: Reduz o tamanho do Mês de Ref. e ativa a Forma de Pagamento
+          monthContainer.classList.remove('col-span-2');
+          monthContainer.classList.add('col-span-1');
+          methodContainer.classList.remove('hidden');
+
           expenseOpts.classList.remove('hidden');
           const cardSelect = document.getElementById('edit-trans-card');
           cardSelect.innerHTML = '<option value="">SEM CARTÃO / OPCIONAL</option>';
@@ -1231,6 +1399,11 @@
           document.getElementById('edit-trans-installments').value = installmentsCount;
           updateEditInstallmentButtons();
         } else {
+          // Receita: O Mês de Referência expande-se para ocupar todo o ecrã
+          monthContainer.classList.remove('col-span-1');
+          monthContainer.classList.add('col-span-2');
+          methodContainer.classList.add('hidden');
+
           expenseOpts.classList.add('hidden');
         }
 
@@ -1265,19 +1438,16 @@
         return; 
       }
 
-      // 1. Agrupar e Calcular os valores por Categoria
       const categoryTotals = {};
       const paymentTotals = {};
-      const paymentCategories = {}; // Guarda a distribuição por categoria de cada forma de pagamento
+      const paymentCategories = {}; 
 
       monthData.forEach(t => {
-        // Agrupar por categoria geral
         if (!categoryTotals[t.category]) {
           categoryTotals[t.category] = { amount: 0, type: t.type };
         }
         categoryTotals[t.category].amount += t.displayAmount;
 
-        // Agrupar por forma de pagamento (Apenas despesas)
         if (t.type === 'expense') {
           const method = t.paymentMethod || 'Não Definido';
           const cat = t.category || 'Outros';
@@ -1287,7 +1457,6 @@
           }
           paymentTotals[method] += t.displayAmount;
 
-          // Agrupar categorias associadas ao meio de pagamento
           if (!paymentCategories[method]) {
             paymentCategories[method] = {};
           }
@@ -1298,22 +1467,19 @@
         }
       });
 
-      // Converter Categorias para Array ordenado por valor decrescente
       const sortedCategories = Object.entries(categoryTotals).map(([name, data]) => ({
         name,
         amount: data.amount,
         type: data.type
       })).sort((a, b) => b.amount - a.amount);
 
-      // Obter o valor máximo de categoria para dimensionar a proporção visual das barras
       const maxCategoryAmount = Math.max(...sortedCategories.map(c => c.amount), 1);
 
-      // Injetar o Gráfico de Barras por Categoria
       let barsHtml = `
         <div class="w-full space-y-4">
           <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-2">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Distribuição por Categoria</span>
-            <span class="text-[8px] font-bold text-slate-500 uppercase">Clique para ver formas de pagamento</span>
+            <span class="text-[8px] font-bold text-slate-500 uppercase">Clique para ver detalhes</span>
           </div>
           <div class="space-y-4 max-h-[300px] overflow-y-auto pr-1">
       `;
@@ -1331,7 +1497,7 @@
               </span>
               <span class="font-black text-slate-100 whitespace-nowrap">${formatCurrency(cat.amount)}</span>
             </div>
-            <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-850">
+            <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800">
               <div class="h-full rounded-full ${barColor} transition-all duration-500" style="width: ${percentage}%"></div>
             </div>
           </div>
@@ -1344,7 +1510,6 @@
       `;
       chartCard.innerHTML = barsHtml;
 
-      // Evento de clique para o pop-up de detalhes da categoria clicada
       chartCard.querySelectorAll('.category-report-item').forEach(el => {
         el.onclick = () => {
           const catName = el.dataset.category;
@@ -1353,7 +1518,6 @@
         };
       });
 
-      // 2. Ordenar e Injetar Consolidado por Meios de Pagamento
       const sortedPayments = Object.entries(paymentTotals).sort((a, b) => b[1] - a[1]);
 
       if (sortedPayments.length === 0) {
@@ -1392,7 +1556,7 @@
           }
 
           paymentHtml += `
-            <div class="payment-method-item bg-slate-950/40 p-3 rounded-2xl border border-slate-850 flex items-center gap-2.5 animate-in fade-in duration-300 cursor-pointer hover:bg-slate-800/40 hover:border-slate-700 active:scale-95 transition-all" data-method="${method}">
+            <div class="payment-method-item bg-slate-950/40 p-3 rounded-2xl border border-slate-800 flex items-center gap-2.5 animate-in fade-in duration-300 cursor-pointer hover:bg-slate-800/40 hover:border-slate-700 active:scale-95 transition-all" data-method="${method}">
               <div class="p-2 rounded-xl ${iconColor} shrink-0">
                 <i data-lucide="${icon}" class="w-4 h-4"></i>
               </div>
@@ -1410,7 +1574,6 @@
         `;
         paymentCard.innerHTML = paymentHtml;
 
-        // Adicionar eventos de clique para cada item de pagamento consolidado
         paymentCard.querySelectorAll('.payment-method-item').forEach(el => {
           el.onclick = () => {
             const methodSelected = el.dataset.method;
@@ -1424,7 +1587,6 @@
       }
     }
 
-    // Modal com dados consolidados por forma de pagamento - Visual de Quadrinhos
     function showPaymentDetailsModal(method, categories) {
       document.getElementById('payment-details-title').textContent = `Gastos: ${method}`;
       const container = document.getElementById('payment-details-chart');
@@ -1438,14 +1600,14 @@
       if (sortedCats.length === 0) {
          container.innerHTML = `<p class="text-center text-slate-500 text-xs py-10 uppercase">Sem gastos registrados</p>`;
       } else {
-         let html = `
-           <div class="grid grid-cols-2 gap-3">
-         `;
-         sortedCats.forEach(cat => {
+          let html = `
+            <div class="grid grid-cols-2 gap-3">
+          `;
+          sortedCats.forEach(cat => {
             const { icon, iconColor } = getCategoryIconAndStyle(cat.name);
             
             html += `
-              <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-850 flex items-center gap-2.5 animate-in fade-in duration-300">
+              <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-800 flex items-center gap-2.5 animate-in fade-in duration-300">
                 <div class="p-2 rounded-xl ${iconColor} shrink-0">
                   <i data-lucide="${icon}" class="w-4 h-4"></i>
                 </div>
@@ -1455,27 +1617,24 @@
                 </div>
               </div>
             `;
-         });
-         html += `</div>`;
-         container.innerHTML = html;
+          });
+          html += `</div>`;
+          container.innerHTML = html;
       }
 
       document.getElementById('payment-details-modal').classList.remove('hidden');
       if (typeof lucide !== 'undefined') {
-         lucide.createIcons();
+          lucide.createIcons();
       }
     }
 
-    // Modal com dados detalhados das formas de pagamento para a categoria clicada
     function showCategoryDetailsModal(categoryName, categoryType, monthData) {
       document.getElementById('category-details-title').textContent = `${categoryName}`;
       const container = document.getElementById('category-details-chart');
       container.innerHTML = '';
 
-      // Filtrar as transações apenas daquela categoria no mês selecionado
       const categoryTrans = monthData.filter(t => t.category === categoryName);
 
-      // Agrupar os valores por método de pagamento
       const methodTotals = {};
       categoryTrans.forEach(t => {
         const method = t.type === 'income' ? 'Entrada (Receita)' : (t.paymentMethod || 'Não Definido');
@@ -1500,7 +1659,7 @@
           const { icon, iconColor } = getMethodIconAndStyle(method.name);
 
           html += `
-            <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-850 flex items-center gap-2.5 animate-in fade-in duration-300">
+            <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-800 flex items-center gap-2.5 animate-in fade-in duration-300">
               <div class="p-2 rounded-xl ${iconColor} shrink-0">
                 <i data-lucide="${icon}" class="w-4 h-4"></i>
               </div>
@@ -1521,7 +1680,6 @@
       }
     }
 
-    // Renderizar categorias no popup unificado de Ajustes
     function renderFidCategories() {
       const container = document.getElementById('categories-popup-list');
       container.innerHTML = '';
@@ -1533,7 +1691,7 @@
 
       state.customCategories.forEach(c => {
         const item = document.createElement('div');
-        item.className = "bg-slate-950/45 p-4 rounded-2xl border border-slate-855/60 flex justify-between items-center animate-in fade-in duration-200";
+        item.className = "bg-slate-955 p-4 rounded-2xl border border-slate-800 flex justify-between items-center animate-in fade-in duration-200";
         item.innerHTML = `
           <div class="flex items-center gap-3">
             <div class="w-2.5 h-2.5 rounded-full ${c.type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'}"></div>
@@ -1558,10 +1716,12 @@
         document.getElementById('edit-category-modal').classList.remove('hidden');
       });
 
-      container.querySelectorAll('.delete-cat-btn').forEach(btn => btn.onclick = async () => { 
-        await DB.deleteDoc(`categories_${LOCAL_KEY}`, btn.dataset.id); 
-        showToast("Categoria removida!", "success"); 
-        renderFidCategories();
+      container.querySelectorAll('.delete-cat-btn').forEach(btn => btn.onclick = () => { 
+        showConfirmModal("Remover Categoria", "Se remover esta categoria, todos os lançamentos que a utilizam serão redefinidos para 'Outros'. Deseja prosseguir?", async () => {
+           await DB.deleteDoc(`categories_${LOCAL_KEY}`, btn.dataset.id); 
+           showToast("Categoria removida!", "success"); 
+           renderFidCategories();
+        });
       });
 
       if (typeof lucide !== 'undefined') {
@@ -1569,7 +1729,6 @@
       }
     }
 
-    // Renderizar contas e cartões no popup unificado de Ajustes
     function renderFidCards() {
       const container = document.getElementById('cards-popup-list');
       container.innerHTML = '';
@@ -1581,7 +1740,7 @@
 
       state.customCards.forEach(c => {
         const item = document.createElement('div');
-        item.className = "bg-slate-950/45 p-4 rounded-2xl border border-slate-855/60 flex justify-between items-center animate-in fade-in duration-200";
+        item.className = "bg-slate-955 p-4 rounded-2xl border border-slate-800 flex justify-between items-center animate-in fade-in duration-200";
         item.innerHTML = `
           <div class="flex items-center gap-3">
             <i data-lucide="building-2" class="w-4 h-4 text-slate-500"></i>
@@ -1605,10 +1764,12 @@
         document.getElementById('edit-card-modal').classList.remove('hidden');
       });
 
-      container.querySelectorAll('.delete-card-btn').forEach(btn => btn.onclick = async () => { 
-        await DB.deleteDoc(`cards_${LOCAL_KEY}`, btn.dataset.id); 
-        showToast("Conta removida!", "success"); 
-        renderFidCards();
+      container.querySelectorAll('.delete-card-btn').forEach(btn => btn.onclick = () => { 
+        showConfirmModal("Remover Conta/Cartão", "Se remover esta conta, todos os lançamentos vinculados a ela ficarão sem conta definida. Deseja prosseguir?", async () => {
+           await DB.deleteDoc(`cards_${LOCAL_KEY}`, btn.dataset.id); 
+           showToast("Conta removida!", "success"); 
+           renderFidCards();
+        });
       });
 
       if (typeof lucide !== 'undefined') {
@@ -1616,7 +1777,6 @@
       }
     }
 
-    // Guardar Edição de Categoria
     document.getElementById('form-edit-category').onsubmit = async (e) => {
       e.preventDefault();
       const id = document.getElementById('edit-category-id').value;
@@ -1643,7 +1803,6 @@
       } catch (err) { showToast("Erro ao atualizar categoria", "error"); }
     };
 
-    // Guardar Edição de Conta / Cartão
     document.getElementById('form-edit-card').onsubmit = async (e) => {
       e.preventDefault();
       const id = document.getElementById('edit-card-id').value;
@@ -1721,11 +1880,11 @@
       if (editIsInstallment) {
         input.classList.remove('hidden');
         btnNo.className = "flex-1 py-2 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent";
-        btnYes.className = "flex-1 py-2 bg-slate-850 text-white rounded-xl text-xs font-bold border border-slate-755";
+        btnYes.className = "flex-1 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
       } else {
         input.classList.add('hidden');
         btnYes.className = "flex-1 py-2 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent";
-        btnNo.className = "flex-1 py-2 bg-slate-850 text-white rounded-xl text-xs font-bold border border-slate-755";
+        btnNo.className = "flex-1 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
       }
     }
 
@@ -1810,7 +1969,6 @@
       }
     }
 
-    // Funcionalidade de Exportar Backup local
     document.getElementById('btn-export-backup').onclick = () => {
       const backupData = {
         transactions: getLocalCollection(`transactions_${LOCAL_KEY}`),
@@ -1829,7 +1987,6 @@
       showToast("Backup exportado!", "success");
     };
 
-    // Funcionalidade de Importar Backup local
     document.getElementById('import-backup-file').onchange = (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -1842,14 +1999,12 @@
             localStorage.setItem(`categories_${LOCAL_KEY}`, JSON.stringify(importedData.categories));
             localStorage.setItem(`cards_${LOCAL_KEY}`, JSON.stringify(importedData.cards));
             
-            // Sincronizar o estado em memória com os dados importados
             state.transactions = importedData.transactions;
             state.customCategories = importedData.categories;
             state.customCards = importedData.cards;
             
             showToast("Dados restaurados!", "success");
             
-            // Recarregar UI do Popup Ativo
             if (state.fidSubTab === 'categories') {
               renderFidCategories();
             } else {
@@ -1866,16 +2021,13 @@
       reader.readAsText(file);
     };
 
-    // Controles de Sub-abas internas do Popup de Ajustes
     document.getElementById('modal-tab-categories').onclick = () => openAjustesModal('categories');
     document.getElementById('modal-tab-cards').onclick = () => openAjustesModal('cards');
     
-    // Fecho do Popup de Ajustes
     document.getElementById('btn-close-ajustes-manager').onclick = () => {
       document.getElementById('ajustes-manager-modal').classList.add('hidden');
     };
 
-    // Cadastro de Categorias via Popup
     document.getElementById('form-add-category').onsubmit = async (e) => {
       e.preventDefault();
       const name = document.getElementById('new-category-name').value.trim();
@@ -1886,7 +2038,6 @@
       renderFidCategories();
     };
 
-    // Cadastro de Contas via Popup
     document.getElementById('form-add-card').onsubmit = async (e) => {
       e.preventDefault();
       const bank = document.getElementById('new-card-name').value.trim();
@@ -1902,6 +2053,7 @@
     document.getElementById('btn-installment-no').onclick = () => { 
       state.isInstallment = false; 
       document.getElementById('transaction-installments').classList.add('hidden'); 
+      document.getElementById('installment-simulation').classList.add('hidden'); 
       document.getElementById('btn-installment-yes').className = "flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent"; 
       document.getElementById('btn-installment-no').className = "flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700"; 
       saveActiveDraft();
@@ -1921,7 +2073,6 @@
     document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.onclick = () => {
       const targetTab = btn.dataset.tab;
       
-      // Se clicou em Ajustes (fid), abrimos o popup unificado diretamente sem mudar a aba em background
       if (targetTab === 'fid') {
         openAjustesModal('categories');
         return;
@@ -1942,7 +2093,6 @@
     document.getElementById('btn-print-action').onclick = () => window.print();
     document.getElementById('btn-share-action').onclick = handleShareStatement;
 
-    // Inicialização ao carregar com temporização da Splash Screen
     window.onload = () => {
       initApp();
       
@@ -1958,8 +2108,10 @@
             }
           }, 700);
         }
-      }, 2000);
+      }, 1500);
     };
   </script>
 </body>
 </html>
+
+```
