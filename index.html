@@ -67,7 +67,8 @@
     #form-add-card input,
     #edit-category-modal input,
     #edit-category-modal select,
-    #edit-card-modal input {
+    #edit-card-modal input,
+    #cloud-share-code-input {
       background-color: #020617 !important; /* bg-slate-950 */
       color: #f8fafc !important; /* text-slate-50 */
       border-color: #1e293b !important; /* border-slate-800 */
@@ -453,8 +454,25 @@
         </div>
       </div>
 
+      <!-- SEÇÃO PREMIUM: Sincronização em Tempo Real na Nuvem -->
+      <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3 shrink-0 my-3">
+        <div class="flex justify-between items-center">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Sincronização na Nuvem</span>
+          <span id="cloud-badge" class="px-2 py-0.5 bg-slate-850 text-slate-500 rounded-full text-[8px] font-black uppercase">Local</span>
+        </div>
+        <p class="text-[8px] text-slate-500 font-bold uppercase leading-relaxed">Partilhe as finanças em tempo real com o parceiro(a). Insira um código exclusivo e conecte os telemóveis.</p>
+        <div class="flex gap-2">
+          <input type="text" id="cloud-share-code-input" placeholder="Ex: familia-samuel" class="flex-1 bg-slate-900 border border-slate-800 px-3 py-2.5 rounded-xl outline-none font-bold text-xs text-white" />
+          <button id="btn-save-share-code" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-xl font-black text-[10px] uppercase transition-all font-bold">Conectar</button>
+        </div>
+        <div id="cloud-actions" class="hidden flex gap-2">
+          <button id="btn-upload-local" class="flex-1 py-2 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 rounded-xl font-black text-[8px] uppercase transition-all font-bold">Subir Dados Atuais</button>
+          <button id="btn-disconnect-cloud" class="py-2 px-3 bg-rose-600/10 hover:bg-rose-600/20 text-rose-400 border border-rose-500/20 rounded-xl font-black text-[8px] uppercase transition-all font-bold">Sair</button>
+        </div>
+      </div>
+
       <!-- Cópia de Segurança Integrada Compacta -->
-      <div class="border-t border-slate-800 pt-4 mt-4 flex justify-between items-center shrink-0">
+      <div class="border-t border-slate-800 pt-4 mt-1 flex justify-between items-center shrink-0">
         <span class="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Backup de dados:</span>
         <div class="flex gap-1.5">
           <button id="btn-export-backup" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 active:scale-95 text-slate-200 rounded-lg font-black text-[9px] uppercase border border-slate-700 transition-all flex items-center gap-1 font-bold">
@@ -615,10 +633,34 @@
      </div>
   </div>
 
-  <!-- Lógica da Base de Dados Local (LocalStorage) -->
-  <script>
-    const LOCAL_KEY = 'samuel';
+  <!-- Firebase & Application Core Engine (Module Script Context) -->
+  <script type="module">
+    // Imports dos Serviços do Firebase (Compatibilidade Direta via CDN)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+    // Chaves Globais Fornecidas pelo Ambiente
+    const LOCAL_KEY = 'samuel';
+    let db, auth;
+    let appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    let currentUser = null;
+    let firebaseEnabled = false;
+
+    // Inicialização do Firebase Baseada em Variáveis Ambientais de Produção
+    if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+      try {
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        firebaseEnabled = true;
+      } catch (e) {
+        console.error("Erro na inicialização do Firebase:", e);
+      }
+    }
+
+    // Estado da Aplicação
     const state = {
       transactions: [],
       customCategories: [],
@@ -627,6 +669,7 @@
       fidSubTab: 'categories', 
       selectedHistoryMonth: `${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${new Date().getFullYear()}`,
       isInstallment: false,
+      shareCode: localStorage.getItem('samuel_share_code') || '',
       drafts: {
         expense: { amount: '', desc: '', category: '', month: '', card: 'Cartão de Crédito', isInstallment: false, installments: 2, date: new Date().toISOString().split('T')[0], paymentMethod: 'Pix' },
         income: { amount: '', desc: '', category: '', month: '', date: new Date().toISOString().split('T')[0] }
@@ -635,7 +678,229 @@
 
     let editIsInstallment = false;
     let confirmModalAction = null;
+    let unsubTransactions = null;
+    let unsubCategories = null;
+    let unsubCards = null;
 
+    // Sincronização Inteligente de Listeners em Tempo Real (Regra 1 e Regra 2)
+    function setupFirestoreListeners() {
+      if (unsubTransactions) unsubTransactions();
+      if (unsubCategories) unsubCategories();
+      if (unsubCards) unsubCards();
+
+      if (!firebaseEnabled || !state.shareCode || !currentUser) {
+        // Fallback robusto para LocalStorage offline se a sincronização não estiver ativa
+        state.transactions = getLocalCollection(`transactions_${LOCAL_KEY}`);
+        state.customCategories = getLocalCollection(`categories_${LOCAL_KEY}`);
+        state.customCards = getLocalCollection(`cards_${LOCAL_KEY}`);
+        updateCloudUI();
+        renderAll();
+        return;
+      }
+
+      updateCloudUI("A Ligar...");
+
+      // Regra 1: Strict Paths -> artifacts/{appId}/public/data/collection
+      const transactionsCol = collection(db, 'artifacts', appId, 'public', 'data', 'transactions');
+      unsubTransactions = onSnapshot(transactionsCol, (snapshot) => {
+        const list = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          // Regra 2: Sem consultas complexas no Firestore -> Filtro local em memória JS
+          if (data.shareCode === state.shareCode) {
+            list.push({ id: doc.id, ...data });
+          }
+        });
+        state.transactions = list;
+        renderAll();
+        updateCloudUI("Sincronizado");
+      }, (error) => {
+        console.error("Erro no listener de transações:", error);
+        showToast("Falha ao sincronizar online.", "error");
+      });
+
+      const categoriesCol = collection(db, 'artifacts', appId, 'public', 'data', 'categories');
+      unsubCategories = onSnapshot(categoriesCol, (snapshot) => {
+        const list = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.shareCode === state.shareCode) {
+            list.push({ id: doc.id, ...data });
+          }
+        });
+        if (list.length > 0) {
+          state.customCategories = list;
+          updateCategorySelect();
+        }
+        renderAll();
+      }, (error) => {
+        console.error("Erro no listener de categorias:", error);
+      });
+
+      const cardsCol = collection(db, 'artifacts', appId, 'public', 'data', 'cards');
+      unsubCards = onSnapshot(cardsCol, (snapshot) => {
+        const list = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.shareCode === state.shareCode) {
+            list.push({ id: doc.id, ...data });
+          }
+        });
+        if (list.length > 0) {
+          state.customCards = list;
+          updateCardSelect();
+        }
+        renderAll();
+      }, (error) => {
+        console.error("Erro no listener de cartões/contas:", error);
+      });
+    }
+
+    // Upload Dinâmico de Histórico Local para a Nuvem
+    async function uploadLocalDataToCloud() {
+      if (!firebaseEnabled || !currentUser || !state.shareCode) return;
+      
+      const localTrans = getLocalCollection(`transactions_${LOCAL_KEY}`);
+      const localCats = getLocalCollection(`categories_${LOCAL_KEY}`);
+      const localCards = getLocalCollection(`cards_${LOCAL_KEY}`);
+
+      showToast("A enviar dados...", "info");
+
+      try {
+        const categoriesCol = collection(db, 'artifacts', appId, 'public', 'data', 'categories');
+        for (const cat of localCats) {
+          await addDoc(categoriesCol, {
+            name: cat.name,
+            type: cat.type,
+            shareCode: state.shareCode,
+            createdAt: new Date().toISOString()
+          });
+        }
+
+        const cardsCol = collection(db, 'artifacts', appId, 'public', 'data', 'cards');
+        for (const card of localCards) {
+          await addDoc(cardsCol, {
+            name: card.name,
+            shareCode: state.shareCode,
+            createdAt: new Date().toISOString()
+          });
+        }
+
+        const transactionsCol = collection(db, 'artifacts', appId, 'public', 'data', 'transactions');
+        for (const t of localTrans) {
+          await addDoc(transactionsCol, {
+            description: t.description,
+            amount: t.amount,
+            type: t.type,
+            category: t.category,
+            billingMonth: t.billingMonth,
+            date: t.date || '',
+            paymentMethod: t.paymentMethod || null,
+            cardUsed: t.cardUsed || null,
+            isInstallment: t.isInstallment || false,
+            installmentsCount: t.installmentsCount || 1,
+            shareCode: state.shareCode,
+            createdAt: t.createdAt || new Date().toISOString()
+          });
+        }
+
+        showToast("Dados enviados com sucesso!", "success");
+      } catch (e) {
+        console.error("Falha ao subir histórico local:", e);
+        showToast("Erro ao carregar dados na nuvem.", "error");
+      }
+    }
+
+    // Regra 3: Auth Before Queries -> Login prioritário inicial
+    const initAuth = async () => {
+      if (!firebaseEnabled) {
+        setupFirestoreListeners();
+        return;
+      }
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (err) {
+        console.error("Falha de autenticação:", err);
+      }
+    };
+
+    if (firebaseEnabled) {
+      initAuth();
+      onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        setupFirestoreListeners();
+      });
+    } else {
+      setupFirestoreListeners();
+    }
+
+    // Adaptador Unificado da Base de Dados (Nuvel / LocalFallback)
+    const DB = {
+      async addDoc(collectionName, data) {
+        if (firebaseEnabled && state.shareCode) {
+          if (!currentUser) { showToast("Não autenticado online.", "error"); return; }
+          const shortColName = collectionName.split('_')[0];
+          const colRef = collection(db, 'artifacts', appId, 'public', 'data', shortColName);
+          await addDoc(colRef, {
+            ...data,
+            shareCode: state.shareCode,
+            createdAt: new Date().toISOString()
+          });
+        } else {
+          const localData = getLocalCollection(collectionName);
+          const newDoc = { id: crypto.randomUUID(), ...data, createdAt: new Date().toISOString() };
+          localData.push(newDoc);
+          localStorage.setItem(collectionName, JSON.stringify(localData));
+          syncLocalState(collectionName, localData);
+          renderAll();
+        }
+      },
+      async deleteDoc(collectionName, id) {
+        if (firebaseEnabled && state.shareCode) {
+          if (!currentUser) return;
+          const shortColName = collectionName.split('_')[0];
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', shortColName, id);
+          await deleteDoc(docRef);
+        } else {
+          let localData = getLocalCollection(collectionName);
+          localData = localData.filter(item => item.id !== id);
+          localStorage.setItem(collectionName, JSON.stringify(localData));
+          syncLocalState(collectionName, localData);
+          renderAll();
+        }
+      },
+      async updateDoc(collectionName, id, data) {
+        if (firebaseEnabled && state.shareCode) {
+          if (!currentUser) return;
+          const shortColName = collectionName.split('_')[0];
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', shortColName, id);
+          await updateDoc(docRef, data);
+        } else {
+          let localData = getLocalCollection(collectionName);
+          localData = localData.map(item => item.id === id ? { ...item, ...data } : item);
+          localStorage.setItem(collectionName, JSON.stringify(localData));
+          syncLocalState(collectionName, localData);
+          renderAll();
+        }
+      }
+    };
+
+    function syncLocalState(collectionName, data) {
+      if (collectionName === `transactions_${LOCAL_KEY}`) state.transactions = data;
+      if (collectionName === `categories_${LOCAL_KEY}`) state.customCategories = data;
+      if (collectionName === `cards_${LOCAL_KEY}`) state.customCards = data;
+    }
+
+    function getLocalCollection(collectionName) {
+      const data = localStorage.getItem(collectionName);
+      return data ? JSON.parse(data) : [];
+    }
+
+    // Função de Geração de Meses
     function getBillingMonthsList() {
       const monthsSet = new Set();
       for (let i = -6; i <= 6; i++) {
@@ -667,6 +932,7 @@
       });
     }
 
+    // Modal de Confirmação Customizado
     function showConfirmModal(title, message, onConfirm) {
        const modal = document.getElementById('confirm-modal');
        document.getElementById('confirm-modal-title').textContent = title;
@@ -677,14 +943,6 @@
           modal.classList.add('hidden');
        };
     }
-
-    document.getElementById('btn-confirm-cancel').onclick = () => {
-       document.getElementById('confirm-modal').classList.add('hidden');
-       confirmModalAction = null;
-    };
-    document.getElementById('btn-confirm-execute').onclick = () => {
-       if (confirmModalAction) confirmModalAction();
-    };
 
     function formatCurrency(value) {
       if (value === undefined || value === null || isNaN(value)) value = 0;
@@ -812,58 +1070,13 @@
       }
     }
 
-    const DB = {
-      addDoc(collectionName, data) {
-        const localData = getLocalCollection(collectionName);
-        const newDoc = { id: crypto.randomUUID(), ...data, createdAt: new Date().toISOString() };
-        localData.push(newDoc);
-        localStorage.setItem(collectionName, JSON.stringify(localData));
-        syncLocalState(collectionName, localData);
-        renderAll();
-      },
-      deleteDoc(collectionName, id) {
-        let localData = getLocalCollection(collectionName);
-        localData = localData.filter(item => item.id !== id);
-        localStorage.setItem(collectionName, JSON.stringify(localData));
-        syncLocalState(collectionName, localData);
-        renderAll();
-      },
-      updateDoc(collectionName, id, data) {
-        let localData = getLocalCollection(collectionName);
-        localData = localData.map(item => item.id === id ? { ...item, ...data } : item);
-        localStorage.setItem(collectionName, JSON.stringify(localData));
-        syncLocalState(collectionName, localData);
-        renderAll();
-      }
-    };
-
-    function syncLocalState(collectionName, data) {
-      if (collectionName === `transactions_${LOCAL_KEY}`) state.transactions = data;
-      if (collectionName === `categories_${LOCAL_KEY}`) state.customCategories = data;
-      if (collectionName === `cards_${LOCAL_KEY}`) state.customCards = data;
-    }
-
-    function getLocalCollection(collectionName) {
-      const data = localStorage.getItem(collectionName);
-      return data ? JSON.parse(data) : [];
-    }
-
     function initApp() {
       seedLocalData();
 
-      state.transactions = getLocalCollection(`transactions_${LOCAL_KEY}`);
-      state.customCategories = getLocalCollection(`categories_${LOCAL_KEY}`);
-      state.customCards = getLocalCollection(`cards_${LOCAL_KEY}`);
-
-      const savedDrafts = localStorage.getItem(`drafts_${LOCAL_KEY}`);
-      if (savedDrafts) {
-        try {
-          state.drafts = JSON.parse(savedDrafts);
-        } catch (e) {}
-      }
+      // O setupFirestoreListeners se encarrega de carregar o estado inicial local ou nuvem
+      setupFirestoreListeners();
 
       populateStaticSelects();
-      renderAll();
     }
 
     function populateStaticSelects() {
@@ -882,20 +1095,6 @@
       const todayStr = new Date().toISOString().split('T')[0];
       document.getElementById('transaction-date').value = todayStr;
     }
-
-    document.getElementById('transaction-date').addEventListener('change', (e) => {
-      if (e.target.value) {
-        const parts = e.target.value.split('-'); 
-        if (parts.length === 3) {
-          const billingRef = `${parts[1]}/${parts[0]}`;
-          const select = document.getElementById('transaction-month');
-          if (optionExists(select, billingRef)) {
-            select.value = billingRef;
-          }
-        }
-      }
-      saveActiveDraft();
-    });
 
     function saveActiveDraft() {
       const activeTab = state.activeTab;
@@ -1150,6 +1349,7 @@
         renderFidCards();
       }
       
+      updateCloudUI();
       modal.classList.remove('hidden');
       if (typeof lucide !== 'undefined') {
         lucide.createIcons();
@@ -1158,6 +1358,7 @@
 
     function updateCategorySelect() {
       const select = document.getElementById('transaction-category');
+      if (!select) return;
       const type = state.activeTab === 'income' ? 'income' : 'expense';
       const available = state.customCategories.filter(c => c.type === type);
       select.innerHTML = '';
@@ -1167,6 +1368,7 @@
 
     function updateCardSelect() {
       const select = document.getElementById('transaction-card');
+      if (!select) return;
       select.innerHTML = '<option value="">SEM CARTÃO / OPCIONAL</option>';
       state.customCards.forEach(c => {
         const opt = document.createElement('option');
@@ -1179,75 +1381,36 @@
       });
     }
 
-    const amountInput = document.getElementById('transaction-amount');
-    amountInput.addEventListener('input', (e) => {
-      let value = e.target.value.replace(/\D/g, "");
-      if (!value) {
-        e.target.value = "";
-        saveActiveDraft();
+    function updateCloudUI(status = "Desconectado") {
+      const badge = document.getElementById('cloud-badge');
+      const input = document.getElementById('cloud-share-code-input');
+      const actions = document.getElementById('cloud-actions');
+      const saveBtn = document.getElementById('btn-save-share-code');
+
+      if (!firebaseEnabled) {
+        badge.textContent = "Indisponível";
+        badge.className = "px-2 py-0.5 bg-rose-500/10 text-rose-500 rounded-full text-[8px] font-black uppercase";
+        input.disabled = true;
+        saveBtn.disabled = true;
         return;
       }
-      e.target.value = (parseFloat(value) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-      saveActiveDraft();
-    });
 
-    document.getElementById('transaction-desc').addEventListener('input', saveActiveDraft);
-    document.getElementById('transaction-category').addEventListener('change', saveActiveDraft);
-    document.getElementById('transaction-month').addEventListener('change', saveActiveDraft);
-    document.getElementById('transaction-card').addEventListener('change', saveActiveDraft);
-    document.getElementById('transaction-method').addEventListener('change', saveActiveDraft);
-    document.getElementById('transaction-installments').addEventListener('input', saveActiveDraft);
-
-    document.getElementById('transaction-form').onsubmit = async (e) => {
-      e.preventDefault();
-      const amountRaw = document.getElementById('transaction-amount').value.replace(/\D/g, "");
-      const num = parseFloat(amountRaw) / 100;
-      
-      const desc = document.getElementById('transaction-desc').value;
-      const cat = document.getElementById('transaction-category').value;
-      const m = document.getElementById('transaction-month').value;
-      const dateVal = document.getElementById('transaction-date').value;
-      const card = document.getElementById('transaction-card').value;
-      const paymentMethod = state.activeTab === 'expense' ? document.getElementById('transaction-method').value : null;
-      const installments = parseInt(document.getElementById('transaction-installments').value) || 1;
-      
-      if (!desc || isNaN(num) || num <= 0) return;
-      
-      try {
-        await DB.addDoc(`transactions_${LOCAL_KEY}`, {
-          description: desc, 
-          amount: num, 
-          type: state.activeTab, 
-          category: cat || 'Outros', 
-          billingMonth: m,
-          date: dateVal,
-          paymentMethod: paymentMethod,
-          cardUsed: state.activeTab === 'expense' ? card : null, 
-          isInstallment: state.activeTab === 'expense' && state.isInstallment,
-          installmentsCount: (state.activeTab === 'expense' && state.isInstallment) ? installments : 1
-        });
-
-        const activeTab = state.activeTab;
-        state.drafts[activeTab] = {
-          amount: '', desc: '', category: '', month: `${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${new Date().getFullYear()}`,
-          date: new Date().toISOString().split('T')[0],
-          ...(activeTab === 'expense' ? { card: 'Cartão de Crédito', isInstallment: false, installments: 2, paymentMethod: 'Pix' } : {})
-        };
-        localStorage.setItem(`drafts_${LOCAL_KEY}`, JSON.stringify(state.drafts));
-
-        document.getElementById('transaction-desc').value = '';
-        document.getElementById('transaction-amount').value = '';
-        state.isInstallment = false;
-        document.getElementById('transaction-installments').classList.add('hidden');
-        document.getElementById('installment-simulation').classList.add('hidden');
-        document.getElementById('btn-installment-yes').className = "flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent";
-        document.getElementById('btn-installment-no').className = "flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
-        showToast("Lançamento guardado!", "success");
-        state.activeTab = 'history';
-        state.selectedHistoryMonth = m;
-        renderAll();
-      } catch (err) { showToast("Erro ao guardar", "error"); }
-    };
+      if (state.shareCode) {
+        input.value = state.shareCode;
+        badge.textContent = status === "Sincronizado" ? `Sincronizado: ${state.shareCode}` : status;
+        badge.className = status === "Sincronizado" 
+          ? "px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-full text-[8px] font-black uppercase"
+          : "px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded-full text-[8px] font-black uppercase animate-pulse";
+        actions.classList.remove('hidden');
+        saveBtn.textContent = "Alterar";
+      } else {
+        input.value = "";
+        badge.textContent = "Local";
+        badge.className = "px-2 py-0.5 bg-slate-800 text-slate-500 rounded-full text-[8px] font-black uppercase";
+        actions.classList.add('hidden');
+        saveBtn.textContent = "Conectar";
+      }
+    }
 
     function renderHistoryList() {
       const container = document.getElementById('history-list');
@@ -1257,7 +1420,7 @@
       const balanceValue = document.getElementById('history-balance-value');
       balanceValue.textContent = formatCurrency(summary.balance);
       const balanceBox = document.getElementById('history-balance-box');
-      balanceBox.className = `p-6 rounded-[2rem] border text-center transition-all ${summary.balance >= 0 ? 'bg-emerald-950/20 border-emerald-900/30 text-emerald-400' : 'bg-rose-955/20 border-rose-900/30 text-rose-400'}`;
+      balanceBox.className = `p-6 rounded-[2rem] border text-center transition-all ${summary.balance >= 0 ? 'bg-emerald-955/20 border-emerald-900/30 text-emerald-400' : 'bg-rose-955/20 border-rose-900/30 text-rose-400'}`;
       if (list.length === 0) { container.innerHTML = `<p class="text-center py-10 text-[10px] font-black text-slate-700 uppercase italic">Nada lançado aqui</p>`; return; }
       
       list.forEach((t) => {
@@ -1408,7 +1571,6 @@
       }
     }
 
-    /* Geração de Relatório com Visual Otimizado e Alturas Limitadas para Caber Perfeitamente no Ecrã */
     function renderReportChart() {
       const monthData = expandedTransactions().filter(t => t.displayMonth === state.selectedHistoryMonth);
       const chartCard = document.getElementById('report-chart-card');
@@ -1469,7 +1631,6 @@
 
       const maxCategoryAmount = Math.max(...sortedCategories.map(c => c.amount), 1);
 
-      // Gráfico compacto e com limite de rolagem para encaixar no telemóvel
       let barsHtml = `
         <div class="w-full space-y-3">
           <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-1 shrink-0">
@@ -1522,7 +1683,6 @@
           </div>
         `;
       } else {
-        // Meios de pagamento ultra-compactos para caber no telemóvel
         let paymentHtml = `
           <div class="w-full space-y-3">
             <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-1 shrink-0">
@@ -1773,102 +1933,6 @@
       }
     }
 
-    document.getElementById('form-edit-category').onsubmit = async (e) => {
-      e.preventDefault();
-      const id = document.getElementById('edit-category-id').value;
-      const name = document.getElementById('edit-category-name').value.trim();
-      const type = document.getElementById('edit-category-type').value;
-      if (!name) return;
-
-      const targetCat = state.customCategories.find(c => c.id === id);
-      const oldName = targetCat ? targetCat.name : null;
-
-      try {
-        await DB.updateDoc(`categories_${LOCAL_KEY}`, id, { name, type });
-        
-        if (oldName && oldName !== name) {
-          const matchedTransactions = state.transactions.filter(t => t.category === oldName);
-          for (const t of matchedTransactions) {
-            await DB.updateDoc(`transactions_${LOCAL_KEY}`, t.id, { category: name });
-          }
-        }
-
-        document.getElementById('edit-category-modal').classList.add('hidden');
-        showToast("Categoria alterada com sucesso!", "success");
-        renderFidCategories();
-      } catch (err) { showToast("Erro ao atualizar categoria", "error"); }
-    };
-
-    document.getElementById('form-edit-card').onsubmit = async (e) => {
-      e.preventDefault();
-      const id = document.getElementById('edit-card-id').value;
-      const name = document.getElementById('edit-card-name').value.trim();
-      if (!name) return;
-
-      const targetCard = state.customCards.find(c => c.id === id);
-      const oldName = targetCard ? targetCard.name : null;
-
-      try {
-        await DB.updateDoc(`cards_${LOCAL_KEY}`, id, { name });
-        
-        if (oldName && oldName !== name) {
-          const matchedTransactions = state.transactions.filter(t => t.cardUsed === oldName);
-          for (const t of matchedTransactions) {
-            await DB.updateDoc(`transactions_${LOCAL_KEY}`, t.id, { cardUsed: name });
-          }
-        }
-
-        document.getElementById('edit-card-modal').classList.add('hidden');
-        showToast("Conta alterada com sucesso!", "success");
-        renderFidCards();
-      } catch (err) { showToast("Erro ao atualizar conta", "error"); }
-    };
-
-    document.getElementById('form-edit-transaction').onsubmit = async (e) => {
-      e.preventDefault();
-      const id = document.getElementById('edit-trans-id').value;
-      const type = document.getElementById('edit-trans-type').value;
-      
-      const amountRaw = document.getElementById('edit-trans-amount').value.replace(/\D/g, "");
-      const num = parseFloat(amountRaw) / 100;
-      
-      const desc = document.getElementById('edit-trans-desc').value.trim();
-      const cat = document.getElementById('edit-trans-category').value;
-      const m = document.getElementById('edit-trans-month').value;
-      const tDate = document.getElementById('edit-trans-date').value;
-      const card = document.getElementById('edit-trans-card').value;
-      const paymentMethod = type === 'expense' ? document.getElementById('edit-trans-method').value : null;
-      const installments = parseInt(document.getElementById('edit-trans-installments').value) || 1;
-
-      if (!desc || isNaN(num) || num <= 0) return;
-
-      try {
-        await DB.updateDoc(`transactions_${LOCAL_KEY}`, id, {
-          description: desc,
-          amount: num,
-          category: cat || 'Outros',
-          billingMonth: m,
-          date: tDate,
-          paymentMethod: paymentMethod,
-          cardUsed: type === 'expense' ? card : null,
-          isInstallment: type === 'expense' && editIsInstallment,
-          installmentsCount: (type === 'expense' && editIsInstallment) ? installments : 1
-        });
-        document.getElementById('edit-transaction-modal').classList.add('hidden');
-        showToast("Lançamento updated!", "success");
-      } catch (err) { showToast("Erro ao atualizar lançamento", "error"); }
-    };
-
-    const editAmountInput = document.getElementById('edit-trans-amount');
-    editAmountInput.addEventListener('input', (e) => {
-      let value = e.target.value.replace(/\D/g, "");
-      if (!value) {
-        e.target.value = "";
-        return;
-      }
-      e.target.value = (parseFloat(value) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    });
-
     function updateEditInstallmentButtons() {
       const btnNo = document.getElementById('btn-edit-installment-no');
       const btnYes = document.getElementById('btn-edit-installment-yes');
@@ -1883,25 +1947,6 @@
         btnNo.className = "flex-1 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
       }
     }
-
-    document.getElementById('btn-edit-installment-no').onclick = () => { 
-      editIsInstallment = false; 
-      updateEditInstallmentButtons(); 
-      document.getElementById('edit-trans-amount').focus();
-    };
-    document.getElementById('btn-edit-installment-yes').onclick = () => { 
-      editIsInstallment = true; 
-      updateEditInstallmentButtons(); 
-      const editInstInput = document.getElementById('edit-trans-installments');
-      editInstInput.focus();
-      editInstInput.select();
-    };
-
-    document.getElementById('btn-close-edit-category').onclick = () => document.getElementById('edit-category-modal').classList.add('hidden');
-    document.getElementById('btn-close-edit-card').onclick = () => document.getElementById('edit-card-modal').classList.add('hidden');
-    document.getElementById('btn-close-edit-trans').onclick = () => document.getElementById('edit-transaction-modal').classList.add('hidden');
-    document.getElementById('btn-close-payment-details').onclick = () => document.getElementById('payment-details-modal').classList.add('hidden');
-    document.getElementById('btn-close-category-details').onclick = () => document.getElementById('category-details-modal').classList.add('hidden');
 
     function handleGenerateReport() {
       const monthData = expandedTransactions().filter(t => t.displayMonth === state.selectedHistoryMonth);
@@ -1965,133 +2010,368 @@
       }
     }
 
-    document.getElementById('btn-export-backup').onclick = () => {
-      const backupData = {
-        transactions: getLocalCollection(`transactions_${LOCAL_KEY}`),
-        categories: getLocalCollection(`categories_${LOCAL_KEY}`),
-        cards: getLocalCollection(`cards_${LOCAL_KEY}`),
-        exportedAt: new Date().toISOString()
-      };
-      
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `samuel_financas_backup_${new Date().toISOString().split('T')[0]}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-      showToast("Backup exportado!", "success");
-    };
-
-    document.getElementById('import-backup-file').onchange = (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const importedData = JSON.parse(event.target.result);
-          if (importedData.transactions && importedData.categories && importedData.cards) {
-            localStorage.setItem(`transactions_${LOCAL_KEY}`, JSON.stringify(importedData.transactions));
-            localStorage.setItem(`categories_${LOCAL_KEY}`, JSON.stringify(importedData.categories));
-            localStorage.setItem(`cards_${LOCAL_KEY}`, JSON.stringify(importedData.cards));
-            
-            state.transactions = importedData.transactions;
-            state.customCategories = importedData.categories;
-            state.customCards = importedData.cards;
-            
-            showToast("Dados restaurados!", "success");
-            
-            if (state.fidSubTab === 'categories') {
-              renderFidCategories();
-            } else {
-              renderFidCards();
-            }
-            renderAll();
-          } else {
-            showToast("Backup inválido ou incompleto.", "error");
-          }
-        } catch (err) {
-          showToast("Erro ao processar o ficheiro.", "error");
-        }
-      };
-      reader.readAsText(file);
-    };
-
-    document.getElementById('modal-tab-categories').onclick = () => openAjustesModal('categories');
-    document.getElementById('modal-tab-cards').onclick = () => openAjustesModal('cards');
-    
-    document.getElementById('btn-close-ajustes-manager').onclick = () => {
-      document.getElementById('ajustes-manager-modal').classList.add('hidden');
-    };
-
-    document.getElementById('form-add-category').onsubmit = async (e) => {
-      e.preventDefault();
-      const name = document.getElementById('new-category-name').value.trim();
-      const type = document.getElementById('new-category-type').value;
-      await DB.addDoc(`categories_${LOCAL_KEY}`, { name, type });
-      document.getElementById('new-category-name').value = ''; 
-      showToast("Categoria adicionada!", "success");
-      renderFidCategories();
-    };
-
-    document.getElementById('form-add-card').onsubmit = async (e) => {
-      e.preventDefault();
-      const bank = document.getElementById('new-card-name').value.trim();
-      const desc = document.getElementById('new-card-details').value.trim();
-      const name = desc ? `${bank} (${desc})` : bank;
-      await DB.addDoc(`cards_${LOCAL_KEY}`, { name });
-      document.getElementById('new-card-name').value = ''; 
-      document.getElementById('new-card-details').value = ''; 
-      showToast("Conta adicionada!", "success");
-      renderFidCards();
-    };
-    
-    document.getElementById('btn-installment-no').onclick = () => { 
-      state.isInstallment = false; 
-      document.getElementById('transaction-installments').classList.add('hidden'); 
-      document.getElementById('installment-simulation').classList.add('hidden'); 
-      document.getElementById('btn-installment-yes').className = "flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent"; 
-      document.getElementById('btn-installment-no').className = "flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700"; 
-      saveActiveDraft();
-      document.getElementById('transaction-amount').focus();
-    };
-    document.getElementById('btn-installment-yes').onclick = () => { 
-      state.isInstallment = true; 
-      const instInput = document.getElementById('transaction-installments');
-      instInput.classList.remove('hidden'); 
-      document.getElementById('btn-installment-no').className = "flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent"; 
-      document.getElementById('btn-installment-yes').className = "flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700"; 
-      saveActiveDraft();
-      instInput.focus();
-      instInput.select();
-    };
-    
-    document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.onclick = () => {
-      const targetTab = btn.dataset.tab;
-      
-      if (targetTab === 'fid') {
-        openAjustesModal('categories');
-        return;
-      }
-      
-      document.querySelectorAll('.nav-tab-btn').forEach(el => el.classList.add('opacity-40'));
-      btn.classList.remove('opacity-40');
-      state.activeTab = targetTab;
-      renderAll();
-      
-      if (state.activeTab === 'expense' || state.activeTab === 'income') {
-        document.getElementById('transaction-amount').focus();
-      }
-    });
-
-    document.getElementById('btn-show-statement').onclick = handleGenerateReport;
-    document.getElementById('btn-close-statement').onclick = () => document.getElementById('statement-modal').classList.add('hidden');
-    document.getElementById('btn-print-action').onclick = () => window.print();
-    document.getElementById('btn-share-action').onclick = handleShareStatement;
-
-    window.onload = () => {
+    // Vinculação Dinâmica de Eventos de Interação (Segurança de Escopo de Módulos)
+    window.addEventListener('DOMContentLoaded', () => {
       initApp();
-      
+
+      // Inputs de Formulários
+      document.getElementById('transaction-amount').addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\D/g, "");
+        if (!value) {
+          e.target.value = "";
+          saveActiveDraft();
+          return;
+        }
+        e.target.value = (parseFloat(value) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        saveActiveDraft();
+      });
+
+      document.getElementById('edit-trans-amount').addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\D/g, "");
+        if (!value) {
+          e.target.value = "";
+          return;
+        }
+        e.target.value = (parseFloat(value) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      });
+
+      document.getElementById('transaction-date').addEventListener('change', (e) => {
+        if (e.target.value) {
+          const parts = e.target.value.split('-'); 
+          if (parts.length === 3) {
+            const billingRef = `${parts[1]}/${parts[0]}`;
+            const select = document.getElementById('transaction-month');
+            if (optionExists(select, billingRef)) {
+              select.value = billingRef;
+            }
+          }
+        }
+        saveActiveDraft();
+      });
+
+      // Rascunhos automáticos
+      document.getElementById('transaction-desc').addEventListener('input', saveActiveDraft);
+      document.getElementById('transaction-category').addEventListener('change', saveActiveDraft);
+      document.getElementById('transaction-month').addEventListener('change', saveActiveDraft);
+      document.getElementById('transaction-card').addEventListener('change', saveActiveDraft);
+      document.getElementById('transaction-method').addEventListener('change', saveActiveDraft);
+      document.getElementById('transaction-installments').addEventListener('input', saveActiveDraft);
+
+      // Submissões de Formulários
+      document.getElementById('transaction-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const amountRaw = document.getElementById('transaction-amount').value.replace(/\D/g, "");
+        const num = parseFloat(amountRaw) / 100;
+        
+        const desc = document.getElementById('transaction-desc').value;
+        const cat = document.getElementById('transaction-category').value;
+        const m = document.getElementById('transaction-month').value;
+        const dateVal = document.getElementById('transaction-date').value;
+        const card = document.getElementById('transaction-card').value;
+        const paymentMethod = state.activeTab === 'expense' ? document.getElementById('transaction-method').value : null;
+        const installments = parseInt(document.getElementById('transaction-installments').value) || 1;
+        
+        if (!desc || isNaN(num) || num <= 0) return;
+        
+        try {
+          await DB.addDoc(`transactions_${LOCAL_KEY}`, {
+            description: desc, 
+            amount: num, 
+            type: state.activeTab, 
+            category: cat || 'Outros', 
+            billingMonth: m,
+            date: dateVal,
+            paymentMethod: paymentMethod,
+            cardUsed: state.activeTab === 'expense' ? card : null, 
+            isInstallment: state.activeTab === 'expense' && state.isInstallment,
+            installmentsCount: (state.activeTab === 'expense' && state.isInstallment) ? installments : 1
+          });
+
+          const activeTab = state.activeTab;
+          state.drafts[activeTab] = {
+            amount: '', desc: '', category: '', month: `${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${new Date().getFullYear()}`,
+            date: new Date().toISOString().split('T')[0],
+            ...(activeTab === 'expense' ? { card: 'Cartão de Crédito', isInstallment: false, installments: 2, paymentMethod: 'Pix' } : {})
+          };
+          localStorage.setItem(`drafts_${LOCAL_KEY}`, JSON.stringify(state.drafts));
+
+          document.getElementById('transaction-desc').value = '';
+          document.getElementById('transaction-amount').value = '';
+          state.isInstallment = false;
+          document.getElementById('transaction-installments').classList.add('hidden');
+          document.getElementById('installment-simulation').classList.add('hidden');
+          document.getElementById('btn-installment-yes').className = "flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent";
+          document.getElementById('btn-installment-no').className = "flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700";
+          showToast("Lançamento guardado!", "success");
+          state.activeTab = 'history';
+          state.selectedHistoryMonth = m;
+          renderAll();
+        } catch (err) { showToast("Erro ao guardar", "error"); }
+      };
+
+      document.getElementById('form-edit-category').onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-category-id').value;
+        const name = document.getElementById('edit-category-name').value.trim();
+        const type = document.getElementById('edit-category-type').value;
+        if (!name) return;
+
+        const targetCat = state.customCategories.find(c => c.id === id);
+        const oldName = targetCat ? targetCat.name : null;
+
+        try {
+          await DB.updateDoc(`categories_${LOCAL_KEY}`, id, { name, type });
+          
+          if (oldName && oldName !== name) {
+            const matchedTransactions = state.transactions.filter(t => t.category === oldName);
+            for (const t of matchedTransactions) {
+              await DB.updateDoc(`transactions_${LOCAL_KEY}`, t.id, { category: name });
+            }
+          }
+
+          document.getElementById('edit-category-modal').classList.add('hidden');
+          showToast("Categoria alterada com sucesso!", "success");
+          renderFidCategories();
+        } catch (err) { showToast("Erro ao atualizar categoria", "error"); }
+      };
+
+      document.getElementById('form-edit-card').onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-card-id').value;
+        const name = document.getElementById('edit-card-name').value.trim();
+        if (!name) return;
+
+        const targetCard = state.customCards.find(c => c.id === id);
+        const oldName = targetCard ? targetCard.name : null;
+
+        try {
+          await DB.updateDoc(`cards_${LOCAL_KEY}`, id, { name });
+          
+          if (oldName && oldName !== name) {
+            const matchedTransactions = state.transactions.filter(t => t.cardUsed === oldName);
+            for (const t of matchedTransactions) {
+              await DB.updateDoc(`transactions_${LOCAL_KEY}`, t.id, { cardUsed: name });
+            }
+          }
+
+          document.getElementById('edit-card-modal').classList.add('hidden');
+          showToast("Conta alterada com sucesso!", "success");
+          renderFidCards();
+        } catch (err) { showToast("Erro ao atualizar conta", "error"); }
+      };
+
+      document.getElementById('form-edit-transaction').onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-trans-id').value;
+        const type = document.getElementById('edit-trans-type').value;
+        
+        const amountRaw = document.getElementById('edit-trans-amount').value.replace(/\D/g, "");
+        const num = parseFloat(amountRaw) / 100;
+        
+        const desc = document.getElementById('edit-trans-desc').value.trim();
+        const cat = document.getElementById('edit-trans-category').value;
+        const m = document.getElementById('edit-trans-month').value;
+        const tDate = document.getElementById('edit-trans-date').value;
+        const card = document.getElementById('edit-trans-card').value;
+        const paymentMethod = type === 'expense' ? document.getElementById('edit-trans-method').value : null;
+        const installments = parseInt(document.getElementById('edit-trans-installments').value) || 1;
+
+        if (!desc || isNaN(num) || num <= 0) return;
+
+        try {
+          await DB.updateDoc(`transactions_${LOCAL_KEY}`, id, {
+            description: desc,
+            amount: num,
+            category: cat || 'Outros',
+            billingMonth: m,
+            date: tDate,
+            paymentMethod: paymentMethod,
+            cardUsed: type === 'expense' ? card : null,
+            isInstallment: type === 'expense' && editIsInstallment,
+            installmentsCount: (type === 'expense' && editIsInstallment) ? installments : 1
+          });
+          document.getElementById('edit-transaction-modal').classList.add('hidden');
+          showToast("Lançamento atualizado!", "success");
+        } catch (err) { showToast("Erro ao atualizar lançamento", "error"); }
+      };
+
+      document.getElementById('form-add-category').onsubmit = async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('new-category-name').value.trim();
+        const type = document.getElementById('new-category-type').value;
+        await DB.addDoc(`categories_${LOCAL_KEY}`, { name, type });
+        document.getElementById('new-category-name').value = ''; 
+        showToast("Categoria adicionada!", "success");
+        renderFidCategories();
+      };
+
+      document.getElementById('form-add-card').onsubmit = async (e) => {
+        e.preventDefault();
+        const bank = document.getElementById('new-card-name').value.trim();
+        const desc = document.getElementById('new-card-details').value.trim();
+        const name = desc ? `${bank} (${desc})` : bank;
+        await DB.addDoc(`cards_${LOCAL_KEY}`, { name });
+        document.getElementById('new-card-name').value = ''; 
+        document.getElementById('new-card-details').value = ''; 
+        showToast("Conta adicionada!", "success");
+        renderFidCards();
+      };
+
+      // Sincronização em Tempo Real (Ações do Usuário)
+      document.getElementById('btn-save-share-code').onclick = () => {
+        const input = document.getElementById('cloud-share-code-input');
+        const code = input.value.trim().toLowerCase();
+        if (!code) {
+          showToast("Por favor insira um código válido.", "warning");
+          return;
+        }
+        state.shareCode = code;
+        localStorage.setItem('samuel_share_code', code);
+        setupFirestoreListeners();
+        showToast("Código conectado!", "success");
+      };
+
+      document.getElementById('btn-disconnect-cloud').onclick = () => {
+        showConfirmModal("Desconectar Nuvem", "Tem a certeza que deseja sair do modo compartilhado e retornar ao modo local offline?", () => {
+          state.shareCode = '';
+          localStorage.removeItem('samuel_share_code');
+          setupFirestoreListeners();
+          showToast("Retornou ao modo local.", "success");
+        });
+      };
+
+      document.getElementById('btn-upload-local').onclick = () => {
+        showConfirmModal("Subir Histórico", "Deseja realmente carregar as suas despesas locais do telemóvel para esta conta compartilhada?", () => {
+          uploadLocalDataToCloud();
+        });
+      };
+
+      // Controles de Abas e Modais Estáticos
+      document.getElementById('btn-confirm-cancel').onclick = () => {
+         document.getElementById('confirm-modal').classList.add('hidden');
+         confirmModalAction = null;
+      };
+
+      document.getElementById('btn-confirm-execute').onclick = () => {
+         if (confirmModalAction) confirmModalAction();
+      };
+
+      document.getElementById('btn-installment-no').onclick = () => { 
+        state.isInstallment = false; 
+        document.getElementById('transaction-installments').classList.add('hidden'); 
+        document.getElementById('installment-simulation').classList.add('hidden'); 
+        document.getElementById('btn-installment-yes').className = "flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent"; 
+        document.getElementById('btn-installment-no').className = "flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700"; 
+        saveActiveDraft();
+        document.getElementById('transaction-amount').focus();
+      };
+
+      document.getElementById('btn-installment-yes').onclick = () => { 
+        state.isInstallment = true; 
+        const instInput = document.getElementById('transaction-installments');
+        instInput.classList.remove('hidden'); 
+        document.getElementById('btn-installment-no').className = "flex-1 py-1.5 bg-slate-900 text-slate-500 rounded-xl text-xs font-bold border border-transparent"; 
+        document.getElementById('btn-installment-yes').className = "flex-1 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-700"; 
+        saveActiveDraft();
+        instInput.focus();
+        instInput.select();
+      };
+
+      document.getElementById('btn-edit-installment-no').onclick = () => { 
+        editIsInstallment = false; 
+        updateEditInstallmentButtons(); 
+        document.getElementById('edit-trans-amount').focus();
+      };
+
+      document.getElementById('btn-edit-installment-yes').onclick = () => { 
+        editIsInstallment = true; 
+        updateEditInstallmentButtons(); 
+        const editInstInput = document.getElementById('edit-trans-installments');
+        editInstInput.focus();
+        editInstInput.select();
+      };
+
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.onclick = () => {
+        const targetTab = btn.dataset.tab;
+        
+        if (targetTab === 'fid') {
+          openAjustesModal('categories');
+          return;
+        }
+        
+        document.querySelectorAll('.nav-tab-btn').forEach(el => el.classList.add('opacity-40'));
+        btn.classList.remove('opacity-40');
+        state.activeTab = targetTab;
+        renderAll();
+        
+        if (state.activeTab === 'expense' || state.activeTab === 'income') {
+          document.getElementById('transaction-amount').focus();
+        }
+      });
+
+      document.getElementById('btn-show-statement').onclick = handleGenerateReport;
+      document.getElementById('btn-close-statement').onclick = () => document.getElementById('statement-modal').classList.add('hidden');
+      document.getElementById('btn-print-action').onclick = () => window.print();
+      document.getElementById('btn-share-action').onclick = handleShareStatement;
+
+      document.getElementById('modal-tab-categories').onclick = () => openAjustesModal('categories');
+      document.getElementById('modal-tab-cards').onclick = () => openAjustesModal('cards');
+      document.getElementById('btn-close-ajustes-manager').onclick = () => document.getElementById('ajustes-manager-modal').classList.add('hidden');
+
+      document.getElementById('btn-close-edit-category').onclick = () => document.getElementById('edit-category-modal').classList.add('hidden');
+      document.getElementById('btn-close-edit-card').onclick = () => document.getElementById('edit-card-modal').classList.add('hidden');
+      document.getElementById('btn-close-edit-trans').onclick = () => document.getElementById('edit-transaction-modal').classList.add('hidden');
+      document.getElementById('btn-close-payment-details').onclick = () => document.getElementById('payment-details-modal').classList.add('hidden');
+      document.getElementById('btn-close-category-details').onclick = () => document.getElementById('category-details-modal').classList.add('hidden');
+
+      // Exportar/Importar Backups Locais Tradicionais
+      document.getElementById('btn-export-backup').onclick = () => {
+        const backupData = {
+          transactions: getLocalCollection(`transactions_${LOCAL_KEY}`),
+          categories: getLocalCollection(`categories_${LOCAL_KEY}`),
+          cards: getLocalCollection(`cards_${LOCAL_KEY}`),
+          exportedAt: new Date().toISOString()
+        };
+        
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `samuel_financas_backup_${new Date().toISOString().split('T')[0]}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        showToast("Backup exportado!", "success");
+      };
+
+      document.getElementById('import-backup-file').onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const importedData = JSON.parse(event.target.result);
+            if (importedData.transactions && importedData.categories && importedData.cards) {
+              localStorage.setItem(`transactions_${LOCAL_KEY}`, JSON.stringify(importedData.transactions));
+              localStorage.setItem(`categories_${LOCAL_KEY}`, JSON.stringify(importedData.categories));
+              localStorage.setItem(`cards_${LOCAL_KEY}`, JSON.stringify(importedData.cards));
+              
+              state.transactions = importedData.transactions;
+              state.customCategories = importedData.categories;
+              state.customCards = importedData.cards;
+              
+              showToast("Dados locais restaurados!", "success");
+              setupFirestoreListeners();
+            } else {
+              showToast("Ficheiro de backup inválido.", "error");
+            }
+          } catch (err) {
+            showToast("Erro ao processar ficheiro.", "error");
+          }
+        };
+        reader.readAsText(file);
+      };
+
+      // Splash temporizada de inicialização
       setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         if (splash) {
@@ -2105,7 +2385,8 @@
           }, 700);
         }
       }, 1500);
-    };
+
+    });
   </script>
 </body>
 </html>
